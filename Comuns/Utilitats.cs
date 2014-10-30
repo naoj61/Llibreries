@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Management;
 using System.Net;
@@ -36,7 +37,11 @@ namespace Comuns
         }
 
 
-        public static List<string> NumMac()
+        /// <summary>
+        /// Torna una llista de les MACs del ordinador.
+        /// </summary>
+        /// <returns></returns>
+        static List<string> NumMac()
         {
             List<string> numS = new List<string>();
 
@@ -57,6 +62,32 @@ namespace Comuns
             }
 
             return numS;
+        }
+
+        /// <summary>
+        /// Torna una llista de les MACs unificades del ordinador.
+        /// </summary>
+        /// <returns></returns>
+        public static List<string> NumMacUnificades()
+        {
+            return NumMac().Select(s => UnificaMac(s)).ToList();
+        }
+
+        /// <summary>
+        /// Elimina els separador de la MAC i converteix tot a majuscules.
+        /// </summary>
+        /// <param name="mac"></param>
+        /// <returns></returns>
+        public static string UnificaMac(string mac)
+        {
+            if(mac==null)
+                return null;
+            if(mac.Length != 17)
+                throw new ApplicationException("Longitud de l'adreça MAC incorrecta");
+
+            string macUnificada = mac.Substring(0, 2) + mac.Substring(3, 2) + mac.Substring(6, 2) + mac.Substring(9, 2) + mac.Substring(12, 2) + mac.Substring(15, 2);
+
+            return macUnificada.ToUpper();
         }
 
 
@@ -139,5 +170,13 @@ namespace Comuns
                                                                                            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             preserveStackTrace.Invoke(exception, null);
         }
+
+
+        public static string ReadSetting(string key)
+        {
+            var appSettings = ConfigurationManager.AppSettings;
+            return appSettings[key];
+        }
+
     }
 }
