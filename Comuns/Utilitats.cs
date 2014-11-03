@@ -2,15 +2,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net;
 using System.Net.Mail;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 
 namespace Comuns
 {
@@ -176,6 +180,68 @@ namespace Comuns
         {
             var appSettings = ConfigurationManager.AppSettings;
             return appSettings[key];
+        }
+
+
+        public static DateTime HoraInternet()
+        {
+            var client = new TcpClient("time.nist.gov", 13);
+            DateTime localDateTime;
+            using (var streamReader = new StreamReader(client.GetStream()))
+            {
+                var response = streamReader.ReadToEnd();
+                var utcDateTimeString = response.Substring(7, 17);
+                localDateTime = DateTime.ParseExact(utcDateTimeString, "yy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+            }
+
+            return localDateTime;
+        }
+
+
+
+        /// <summary>
+        /// Grava un valor en el registre de Windows.
+        /// </summary>
+        /// <param name="baseKey">  És l'element principal del registre de Windows. </param>
+        /// <param name="clauRegistre">És la carpeta del registre.</param>
+        /// <param name="nom">Nom de la variable.</param>
+        /// <param name="valor">Valor de la variable.</param>
+        public static void GravaVariableRegistre(RegistryKey baseKey, string clauRegistre, string nom, object valor)
+        {
+            using (RegistryKey OurKey1 = baseKey.OpenSubKey(clauRegistre, RegistryKeyPermissionCheck.ReadWriteSubTree))
+            {
+                if (OurKey1 == null)
+                {
+                    // La clau no existeix, la creo.
+                    using (RegistryKey OurKey2 = baseKey.CreateSubKey(clauRegistre, RegistryKeyPermissionCheck.ReadWriteSubTree))
+                    {
+                        if (OurKey2 != null)
+                            OurKey2.SetValue(nom, valor);
+                    }
+                }
+                else
+                    OurKey1.SetValue(nom, valor);
+            }
+        }
+
+
+        /// <summary>
+        /// Llegeig el valor d'una variable en el registre de Windows.
+        /// </summary>
+        /// <param name="baseKey">  És l'element principal del registre de Windows. </param>
+        /// <param name="clauRegistre">És la carpeta del registre.</param>
+        /// <param name="nom">Nom de la variable.</param>
+        /// <returns></returns>
+        public static string LlegeixVariableRegistre(RegistryKey baseKey, string clauRegistre, string nom)
+        {
+            using (RegistryKey OurKey1 = baseKey.OpenSubKey(clauRegistre, RegistryKeyPermissionCheck.ReadSubTree))
+            {
+                if (OurKey1 == null)
+                    return null;
+
+                object valor = OurKey1.GetValue(nom);
+                return valor == null ? null : valor.ToString();
+            }
         }
 
     }
