@@ -31,9 +31,9 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FileBrowser2));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.treeView1 = new System.Windows.Forms.TreeView();
+            this.tvDirectoris = new System.Windows.Forms.TreeView();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
-            this.listView1 = new System.Windows.Forms.ListView();
+            this.lvFitxers = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -51,26 +51,26 @@
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.treeView1);
+            this.splitContainer1.Panel1.Controls.Add(this.tvDirectoris);
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.listView1);
+            this.splitContainer1.Panel2.Controls.Add(this.lvFitxers);
             this.splitContainer1.Size = new System.Drawing.Size(836, 424);
             this.splitContainer1.SplitterDistance = 301;
             this.splitContainer1.TabIndex = 0;
             // 
-            // treeView1
+            // tvDirectoris
             // 
-            this.treeView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.treeView1.ImageIndex = 0;
-            this.treeView1.ImageList = this.imageList1;
-            this.treeView1.Location = new System.Drawing.Point(0, 0);
-            this.treeView1.Name = "treeView1";
-            this.treeView1.SelectedImageIndex = 0;
-            this.treeView1.Size = new System.Drawing.Size(301, 424);
-            this.treeView1.TabIndex = 0;
-            this.treeView1.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeView1_NodeMouseClick);
+            this.tvDirectoris.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tvDirectoris.ImageIndex = 0;
+            this.tvDirectoris.ImageList = this.imageList1;
+            this.tvDirectoris.Location = new System.Drawing.Point(0, 0);
+            this.tvDirectoris.Name = "tvDirectoris";
+            this.tvDirectoris.SelectedImageIndex = 0;
+            this.tvDirectoris.Size = new System.Drawing.Size(301, 424);
+            this.tvDirectoris.TabIndex = 0;
+            this.tvDirectoris.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvDirectoris_NodeMouseClick);
             // 
             // imageList1
             // 
@@ -79,22 +79,22 @@
             this.imageList1.Images.SetKeyName(0, "Folder");
             this.imageList1.Images.SetKeyName(1, "File");
             // 
-            // listView1
+            // lvFitxers
             // 
-            this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.lvFitxers.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2,
             this.columnHeader3});
-            this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listView1.Location = new System.Drawing.Point(0, 0);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(531, 424);
-            this.listView1.SmallImageList = this.imageList1;
-            this.listView1.TabIndex = 0;
-            this.listView1.UseCompatibleStateImageBehavior = false;
-            this.listView1.View = System.Windows.Forms.View.Details;
-            this.listView1.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged);
-            this.listView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseDoubleClick);
+            this.lvFitxers.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lvFitxers.Location = new System.Drawing.Point(0, 0);
+            this.lvFitxers.Name = "lvFitxers";
+            this.lvFitxers.Size = new System.Drawing.Size(531, 424);
+            this.lvFitxers.SmallImageList = this.imageList1;
+            this.lvFitxers.TabIndex = 0;
+            this.lvFitxers.UseCompatibleStateImageBehavior = false;
+            this.lvFitxers.View = System.Windows.Forms.View.Details;
+            this.lvFitxers.SelectedIndexChanged += new System.EventHandler(this.lvFitxers_SelectedIndexChanged);
+            this.lvFitxers.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lvFitxers_MouseDoubleClick);
             // 
             // columnHeader1
             // 
@@ -126,9 +126,9 @@
         #endregion
 
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private System.Windows.Forms.TreeView treeView1;
+        private System.Windows.Forms.TreeView tvDirectoris;
         private System.Windows.Forms.ImageList imageList1;
-        private System.Windows.Forms.ListView listView1;
+        private System.Windows.Forms.ListView lvFitxers;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;

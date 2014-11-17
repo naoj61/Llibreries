@@ -20,7 +20,7 @@ namespace Controls
 
         // Windows Designer variables
 
-        private System.Windows.Forms.StatusBar statusBar1;
+        private StatusBar statusBar1;
 
         public FileBrowser()
         {

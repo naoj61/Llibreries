@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -21,6 +22,7 @@ namespace Controls
         {
             InitializeComponent();
             PopulateTreeView();
+            _Filter = "*.*";
         }
 
         private DirectoryInfo vDirectoriArrel = new DirectoryInfo(@"C:\");
@@ -38,6 +40,11 @@ namespace Controls
             get { return vFitxeriSeleccionat; }
         }
 
+        /// <summary>
+        /// *.txt|*.*
+        /// </summary>
+        public string _Filter { get; set; }
+
         public void directoriArrel(DirectoryInfo directori, bool expand)
         {
             _DirectoriArrel = directori;
@@ -51,8 +58,8 @@ namespace Controls
                 TreeNode rootNode = new TreeNode(_DirectoriArrel.Name);
                 rootNode.Tag = _DirectoriArrel;
                 GetDirectories(_DirectoriArrel.GetDirectories(), rootNode);
-                treeView1.Nodes.Clear();
-                treeView1.Nodes.Add(rootNode);
+                tvDirectoris.Nodes.Clear();
+                tvDirectoris.Nodes.Add(rootNode);
                 if (expand)
                 {
                     seleccionaNode(rootNode, true);
@@ -84,14 +91,14 @@ namespace Controls
             }
         }
 
-        private void treeView1_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        private void tvDirectoris_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             seleccionaNode(e.Node);
         }
 
         private void seleccionaNode(TreeNode treeNode, bool expand = false)
         {
-            listView1.Items.Clear();
+            lvFitxers.Items.Clear();
             DirectoryInfo nodeDirInfo = (DirectoryInfo) treeNode.Tag;
             ListViewItem.ListViewSubItem[] subItems;
             ListViewItem item = null;
@@ -101,18 +108,18 @@ namespace Controls
                 item = new ListViewItem(dir.Name, 0);
                 subItems = new[] {new ListViewItem.ListViewSubItem(item, "Directory"), new ListViewItem.ListViewSubItem(item, dir.LastAccessTime.ToShortDateString())};
                 item.SubItems.AddRange(subItems);
-                listView1.Items.Add(item);
+                lvFitxers.Items.Add(item);
             }
-            foreach (FileInfo file in nodeDirInfo.GetFiles())
+            foreach (FileInfo file in FitxersFiltre(nodeDirInfo, _Filter))
             {
                 item = new ListViewItem(file.Name, 1);
                 subItems = new[] {new ListViewItem.ListViewSubItem(item, "File"), new ListViewItem.ListViewSubItem(item, file.LastAccessTime.ToShortDateString())};
 
                 item.SubItems.AddRange(subItems);
-                listView1.Items.Add(item);
+                lvFitxers.Items.Add(item);
             }
 
-            listView1.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+            lvFitxers.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
 
             if (expand)
                 treeNode.Expand();
@@ -126,13 +133,13 @@ namespace Controls
 
 
 
-        private void listView1_SelectedIndexChanged(object sender, EventArgs e)
+        private void lvFitxers_SelectedIndexChanged(object sender, EventArgs e)
         {
             ListView lv = (ListView) sender;
 
             if (lv.SelectedItems.Count > 0)
             {
-                vFitxeriSeleccionat = new FileInfo(((DirectoryInfo) treeView1.SelectedNode.Tag).FullName + "\\" + listView1.SelectedItems[0].Text);
+                vFitxeriSeleccionat = new FileInfo(((DirectoryInfo) tvDirectoris.SelectedNode.Tag).FullName + "\\" + lvFitxers.SelectedItems[0].Text);
                 if (!vFitxeriSeleccionat.Exists)
                     vFitxeriSeleccionat = null;
                 if (FitxerClick != null)
@@ -142,18 +149,18 @@ namespace Controls
             }
         }
 
-        private void listView1_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void lvFitxers_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (listView1.SelectedItems.Count > 0)
+            if (lvFitxers.SelectedItems.Count > 0)
             {
-                if (listView1.SelectedItems[0].ImageIndex == 0)
+                if (lvFitxers.SelectedItems[0].ImageIndex == 0)
                 {
                     // Doble click en un directori
-                    foreach (TreeNode node in treeView1.SelectedNode.Nodes)
+                    foreach (TreeNode node in tvDirectoris.SelectedNode.Nodes)
                     {
-                        if (node.Text == listView1.SelectedItems[0].Text)
+                        if (node.Text == lvFitxers.SelectedItems[0].Text)
                         {
-                            treeView1.SelectedNode = node;
+                            tvDirectoris.SelectedNode = node;
                             seleccionaNode(node);
                             break;
                         }
@@ -169,5 +176,27 @@ namespace Controls
                 }
             }
         }
+
+
+        /// <summary>
+        /// Torna una llista amb els fitxers que compleixen la máscara.
+        /// </summary>
+        /// <param name="nodeDirInfo"></param>
+        /// <param name="mascaraFiltre"></param>
+        /// <returns></returns>
+        private static IEnumerable<FileInfo> FitxersFiltre(DirectoryInfo nodeDirInfo, string mascaraFiltre)
+        {
+            if (string.IsNullOrEmpty(mascaraFiltre))
+                mascaraFiltre = "*.*";
+
+            List<FileInfo> fitxers = new List<FileInfo>();
+
+            foreach (var filtre in mascaraFiltre.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                fitxers.AddRange(nodeDirInfo.GetFiles(filtre));
+            }
+            return fitxers;
+        }
+
     }
 }
