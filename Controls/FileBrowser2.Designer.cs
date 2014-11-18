@@ -46,6 +46,7 @@
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
             this.splitContainer1.Name = "splitContainer1";
             // 
@@ -56,8 +57,8 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.lvFitxers);
-            this.splitContainer1.Size = new System.Drawing.Size(836, 424);
-            this.splitContainer1.SplitterDistance = 301;
+            this.splitContainer1.Size = new System.Drawing.Size(736, 424);
+            this.splitContainer1.SplitterDistance = 246;
             this.splitContainer1.TabIndex = 0;
             // 
             // tvDirectoris
@@ -68,7 +69,7 @@
             this.tvDirectoris.Location = new System.Drawing.Point(0, 0);
             this.tvDirectoris.Name = "tvDirectoris";
             this.tvDirectoris.SelectedImageIndex = 0;
-            this.tvDirectoris.Size = new System.Drawing.Size(301, 424);
+            this.tvDirectoris.Size = new System.Drawing.Size(246, 424);
             this.tvDirectoris.TabIndex = 0;
             this.tvDirectoris.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvDirectoris_NodeMouseClick);
             // 
@@ -88,7 +89,7 @@
             this.lvFitxers.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvFitxers.Location = new System.Drawing.Point(0, 0);
             this.lvFitxers.Name = "lvFitxers";
-            this.lvFitxers.Size = new System.Drawing.Size(531, 424);
+            this.lvFitxers.Size = new System.Drawing.Size(486, 424);
             this.lvFitxers.SmallImageList = this.imageList1;
             this.lvFitxers.TabIndex = 0;
             this.lvFitxers.UseCompatibleStateImageBehavior = false;
@@ -114,7 +115,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.splitContainer1);
             this.Name = "FileBrowser2";
-            this.Size = new System.Drawing.Size(836, 424);
+            this.Size = new System.Drawing.Size(736, 424);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
