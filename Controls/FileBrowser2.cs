@@ -177,6 +177,19 @@ namespace Controls
             }
         }
 
+        public void canviaIdioma(string texts)
+        {
+            var t = texts.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+
+            if(t.Count()<3)
+                return;
+
+            columnHeaderName.Text = t[0];
+            columnHeaderType.Text = t[1];
+            columnHeaderLastModified.Text = t[2];
+
+        }
+
 
         /// <summary>
         /// Torna una llista amb els fitxers que compleixen la máscara.
@@ -197,6 +210,5 @@ namespace Controls
             }
             return fitxers;
         }
-
     }
 }

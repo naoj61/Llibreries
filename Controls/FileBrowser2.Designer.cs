@@ -34,9 +34,9 @@
             this.tvDirectoris = new System.Windows.Forms.TreeView();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.lvFitxers = new System.Windows.Forms.ListView();
-            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderLastModified = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -83,9 +83,9 @@
             // lvFitxers
             // 
             this.lvFitxers.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnHeader1,
-            this.columnHeader2,
-            this.columnHeader3});
+            this.columnHeaderName,
+            this.columnHeaderType,
+            this.columnHeaderLastModified});
             this.lvFitxers.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvFitxers.Location = new System.Drawing.Point(0, 0);
             this.lvFitxers.Name = "lvFitxers";
@@ -97,17 +97,17 @@
             this.lvFitxers.SelectedIndexChanged += new System.EventHandler(this.lvFitxers_SelectedIndexChanged);
             this.lvFitxers.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lvFitxers_MouseDoubleClick);
             // 
-            // columnHeader1
+            // columnHeaderName
             // 
-            this.columnHeader1.Text = "Name";
+            this.columnHeaderName.Text = "Name";
             // 
-            // columnHeader2
+            // columnHeaderType
             // 
-            this.columnHeader2.Text = "Type";
+            this.columnHeaderType.Text = "Type";
             // 
-            // columnHeader3
+            // columnHeaderLastModified
             // 
-            this.columnHeader3.Text = "Last Modified";
+            this.columnHeaderLastModified.Text = "Last Modified";
             // 
             // FileBrowser2
             // 
@@ -130,8 +130,8 @@
         private System.Windows.Forms.TreeView tvDirectoris;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.ListView lvFitxers;
-        private System.Windows.Forms.ColumnHeader columnHeader1;
-        private System.Windows.Forms.ColumnHeader columnHeader2;
-        private System.Windows.Forms.ColumnHeader columnHeader3;
+        private System.Windows.Forms.ColumnHeader columnHeaderName;
+        private System.Windows.Forms.ColumnHeader columnHeaderType;
+        private System.Windows.Forms.ColumnHeader columnHeaderLastModified;
     }
 }
