@@ -67,8 +67,10 @@ namespace Controls
                 }
 
             }
-            // Throw Exception when accessing directory: C:\System Volume Information	 // do nothing
-            catch { ;	}
+                // Throw Exception when accessing directory: C:\System Volume Information	 // do nothing
+            catch
+            {
+            }
 
             treeView1.EndUpdate();
         }

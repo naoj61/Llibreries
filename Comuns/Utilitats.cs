@@ -8,6 +8,7 @@ using System.Linq;
 using System.Management;
 using System.Net;
 using System.Net.Mail;
+using System.Net.Mime;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -18,8 +19,24 @@ using Microsoft.Win32;
 
 namespace Comuns
 {
+    public class UtilitatsException : Exception
+    {
+        public UtilitatsException(Utilitats.Errors error) : base("Error Utilitats")
+        {
+            Error = error;
+        }
+
+        public readonly Utilitats.Errors Error;
+    }
+
     public class Utilitats
     {
+           public enum Errors
+           {
+               LongitudAdrecaMacIncorrecta,
+               LlicenciaCaducada
+           }
+
         public static List<string> NumSerieHd()
         {
             List<string> numS = new List<string>();
@@ -87,8 +104,8 @@ namespace Comuns
             if(mac==null)
                 return null;
             if(mac.Length != 17)
-                throw new ApplicationException("Longitud de l'adreça MAC incorrecta");
-
+                throw new UtilitatsException(Errors.LongitudAdrecaMacIncorrecta);
+            
             string macUnificada = mac.Substring(0, 2) + mac.Substring(3, 2) + mac.Substring(6, 2) + mac.Substring(9, 2) + mac.Substring(12, 2) + mac.Substring(15, 2);
 
             return macUnificada.ToUpper();
@@ -244,5 +261,47 @@ namespace Comuns
             }
         }
 
+
+        /// <summary>
+        /// Valida que la llicència estigui vigent, sino llença una exepció.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="nomCompanyia"></param>
+        public static void ComprovaLlicencia(DateTime data, string nomCompanyia)
+        {
+            try
+            {
+                //string claureg = "Software" + Path.DirectorySeparatorChar + MediaTypeNames.Application.CompanyName + Path.DirectorySeparatorChar + "CIP3";
+                string claureg = "Software" + Path.DirectorySeparatorChar + nomCompanyia + Path.DirectorySeparatorChar + "CIP3";
+                string x = Comuns.Utilitats.LlegeixVariableRegistre(Microsoft.Win32.Registry.CurrentUser, claureg, "Lic");
+
+                if (x == "2")
+                    throw new UtilitatsException(Errors.LlicenciaCaducada); //MediaTypeNames.Application.Exit();
+                else
+                {
+                    //DateTime dt = new DateTime(2015, 04, 10, 0, 0, 0);
+                    DateTime dataAvui;
+                    try
+                    {
+                        var s = Comuns.Utilitats.HoraInternet();
+                        dataAvui = s;
+                    }
+                    catch
+                    {
+                        dataAvui = DateTime.Now;
+                    }
+
+                    if (dataAvui > data)
+                    {
+                        Comuns.Utilitats.GravaVariableRegistre(Microsoft.Win32.Registry.CurrentUser, claureg, "Lic", "2");
+                        throw new UtilitatsException(Errors.LlicenciaCaducada); //Comuns.Utilitats.Missatge("Llicència caducada", true, false, true);
+                        //MediaTypeNames.Application.Exit();
+                    }
+                }
+            }
+            catch
+            {
+            }
+        }
     }
 }
