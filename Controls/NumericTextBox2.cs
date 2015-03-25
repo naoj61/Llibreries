@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -28,16 +29,19 @@ namespace Controls
 
         public string _Format { get; set; }
 
+        [Browsable(false)]
         public int _IntValue
         {
             get { return (int) vValor; }
         }
 
+        [Browsable(false)]
         public decimal _DecimalValue
         {
             get { return (decimal) vValor; }
         }
 
+        [Browsable(false)]
         public double _DoubleValue
         {
             get { return vValor; }
@@ -48,10 +52,10 @@ namespace Controls
             get { return vValor; }
             set
             {
+                // Deso el valor en base.Text, no ho faig a través de "Text" perquè he de dona diferents valors a 'base.Text' i 'vTextAnt'.
+                base.Text = value.ToString(_Format);
+                vTextAnt = value.ToString(CultureInfo.CurrentCulture);
                 vValor = value;
-
-                // Deso el valor en base.Text, no ho faig a través de "Text" per no tornar a modificar "vValor".
-                // Al modificar el valor per programa no necessito desar "vTextAnt".
 
                 base.Text = value.ToString(_Format);
                 vTextAnt = value.ToString(CultureInfo.CurrentCulture);
