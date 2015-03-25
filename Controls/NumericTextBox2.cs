@@ -52,8 +52,9 @@ namespace Controls
 
                 // Deso el valor en base.Text, no ho faig a través de "Text" per no tornar a modificar "vValor".
                 // Al modificar el valor per programa no necessito desar "vTextAnt".
-                base.Text = value.ToString(CultureInfo.InvariantCulture);
-                vTextAnt = base.Text;
+
+                base.Text = value.ToString(_Format);
+                vTextAnt = value.ToString(CultureInfo.CurrentCulture);
             }
         }
 
