@@ -20,11 +20,10 @@ namespace Controls
 
         // Desa el format original de Text, abans d'aplicar el format.
         private string vTextAnt = null;
-        readonly static char DecimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
-        readonly static char GroupSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator);
-        readonly static char NegativeSign = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NegativeSign);
+        private static readonly char DecimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
+        private static readonly char GroupSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator);
+        private static readonly char NegativeSign = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NegativeSign);
 
-        private double vValor;
         private bool vPaste;
 
         public string _Format { get; set; }
@@ -32,30 +31,41 @@ namespace Controls
         [Browsable(false)]
         public int _IntValue
         {
-            get { return (int) vValor; }
+            get
+            {
+                string num = EliminaCaracterNoNumerics(base.Text);
+                return String.IsNullOrEmpty(num) ? 0 : Int32.Parse(num);
+            }
         }
 
         [Browsable(false)]
         public decimal _DecimalValue
         {
-            get { return (decimal) vValor; }
+            get
+            {
+                string num = EliminaCaracterNoNumerics(base.Text);
+                return String.IsNullOrEmpty(num) ? 0 : Decimal.Parse(num);
+            }
         }
 
         [Browsable(false)]
         public double _DoubleValue
         {
-            get { return vValor; }
+            get
+            {
+                string num = EliminaCaracterNoNumerics(base.Text);
+                return String.IsNullOrEmpty(num) ? 0 : Double.Parse(num);
+            }
         }
 
         public double Valor
         {
-            get { return vValor; }
+            get { return _DoubleValue; }
             set
             {
                 // Deso el valor en base.Text, no ho faig a través de "Text" perquè he de dona diferents valors a 'base.Text' i 'vTextAnt'.
                 base.Text = value.ToString(_Format);
                 vTextAnt = value.ToString(CultureInfo.CurrentCulture);
-                vValor = value;
 
                 base.Text = value.ToString(_Format);
                 vTextAnt = value.ToString(CultureInfo.CurrentCulture);
@@ -120,7 +130,7 @@ namespace Controls
             }
         }
 
-        
+
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
             base.OnKeyPress(e);
@@ -187,11 +197,7 @@ namespace Controls
             {
                 base.Text = value;
                 vTextAnt = value;
-
-                var num = EliminaCaracterNoNumerics(value);
-                vValor = String.IsNullOrEmpty(num) ? 0 : Double.Parse(num);
             }
         }
-
     }
 }
