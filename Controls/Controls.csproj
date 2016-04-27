@@ -44,6 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DateTimePickerNullable.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="FileBrowser2.cs">
       <SubType>UserControl</SubType>
     </Compile>
