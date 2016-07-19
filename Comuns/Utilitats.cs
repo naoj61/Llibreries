@@ -2,6 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.Entity.Core.EntityClient;
+using System.Data.Entity.Validation;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,11 +13,13 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.Win32;
 
 namespace Comuns
@@ -31,11 +36,13 @@ namespace Comuns
 
     public class Utilitats
     {
-           public enum Errors
-           {
-               LongitudAdrecaMacIncorrecta,
-               LlicenciaCaducada
-           }
+        #region *** Utilitats1 ***
+
+        public enum Errors
+        {
+            LongitudAdrecaMacIncorrecta,
+            LlicenciaCaducada
+        }
 
         public static List<string> NumSerieHd()
         {
@@ -46,7 +53,7 @@ namespace Comuns
             {
                 try
                 {
-                    string numSerie = (string)share.Properties["SerialNumber"].Value;
+                    string numSerie = (string) share.Properties["SerialNumber"].Value;
                     numS.Add(numSerie);
                 }
                 catch (Exception)
@@ -62,7 +69,7 @@ namespace Comuns
         /// Torna una llista de les MACs del ordinador.
         /// </summary>
         /// <returns></returns>
-        static List<string> NumMac()
+        private static List<string> NumMac()
         {
             List<string> numS = new List<string>();
 
@@ -71,7 +78,7 @@ namespace Comuns
             {
                 try
                 {
-                    string numSerie = (string)share.Properties["MACAddress"].Value;
+                    string numSerie = (string) share.Properties["MACAddress"].Value;
                     if (!String.IsNullOrEmpty(numSerie))
                     {
                         numS.Add(numSerie);
@@ -101,11 +108,11 @@ namespace Comuns
         /// <returns></returns>
         public static string UnificaMac(string mac)
         {
-            if(mac==null)
+            if (mac == null)
                 return null;
-            if(mac.Length != 17)
+            if (mac.Length != 17)
                 throw new UtilitatsException(Errors.LongitudAdrecaMacIncorrecta);
-            
+
             string macUnificada = mac.Substring(0, 2) + mac.Substring(3, 2) + mac.Substring(6, 2) + mac.Substring(9, 2) + mac.Substring(12, 2) + mac.Substring(15, 2);
 
             return macUnificada.ToUpper();
@@ -187,8 +194,8 @@ namespace Comuns
         {
             //http://weblogs.asp.net/fmarguerie/archive/2008/01/02/rethrowing-exceptions-and-preserving-the-full-call-stack-trace.aspx
 
-            System.Reflection.MethodInfo preserveStackTrace = typeof(Exception).GetMethod("InternalPreserveStackTrace",
-                                                                                           System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            System.Reflection.MethodInfo preserveStackTrace = typeof (Exception).GetMethod("InternalPreserveStackTrace",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             preserveStackTrace.Invoke(exception, null);
         }
 
@@ -213,7 +220,6 @@ namespace Comuns
 
             return localDateTime;
         }
-
 
 
         /// <summary>
@@ -303,5 +309,385 @@ namespace Comuns
             {
             }
         }
+
+        #endregion   *** Utilitats1 ***
+
+
+        #region *** Utilitats2 ***
+
+        [DllImport("user32.dll")]
+        public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
+
+
+        /// <summary>
+        /// Torna la versio de la dll.
+        /// </summary>
+        /// <param name="dllType">És Type de la dll que es vol la versió.</param>
+        /// <returns></returns>
+        public static Version VersioDll(Type dllType)
+        {
+            return Assembly.GetAssembly(dllType).GetName().Version;
+        }
+
+        /// <summary>
+        /// Torna el directori on està l'assembly.
+        /// </summary>
+        /// <param name="dllType"></param>
+        /// <returns></returns>
+        public static string DirectoriAssembly(Type dllType)
+        {
+            return Path.GetDirectoryName(dllType.Assembly.Location);
+        }
+
+
+        public static void MostraFinestraAmbError(Exception ex)
+        {
+            string msg;
+            if (ex.InnerException == null)
+                msg = ex.Message;
+            else
+                msg = ex.Message + Environment.NewLine + ex.InnerException.Message;
+
+            MessageBox.Show(msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+
+        /// <summary>
+        /// Torna la data del dia anterior laborable.
+        /// No té calendari de festius, només te en compte dissabtes i diumenges.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        internal static DateTime AnteriorDiaLaborable(DateTime data)
+        {
+            DateTime dataAnt = data;
+            do
+            {
+                dataAnt = dataAnt.AddDays(-1);
+
+            } while (dataAnt.DayOfWeek == DayOfWeek.Saturday || dataAnt.DayOfWeek == DayOfWeek.Sunday);
+
+            return dataAnt;
+        }
+
+
+        /// <summary>
+        /// Genera string de connexió per a Entity Framework.
+        /// </summary>
+        /// <param name="nomServidor"></param>
+        /// <param name="nomBaseDades"></param>
+        /// <param name="model"></param>
+        /// <param name="usuari"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public static string ConnString(string nomServidor, string nomBaseDades, string model, string usuari, string password)
+        {
+            // Initialize the connection string builder for the
+            // underlying provider.
+            SqlConnectionStringBuilder sqlBuilder = new SqlConnectionStringBuilder();
+
+            // Set the properties for the data source.
+            sqlBuilder.DataSource = nomServidor;
+            sqlBuilder.InitialCatalog = nomBaseDades;
+
+            #region ***** Connexió amb i sense UsuariNgloba/password *****
+
+            // Usuari/password SqlServer: sa/qwerty
+            //sqlBuilder.IntegratedSecurity = true; // No necessita Usuari/Password
+            sqlBuilder.IntegratedSecurity = false; // false si vull connectar amb un usuari determinat.
+            sqlBuilder.UserID = usuari;
+            sqlBuilder.Password = password;
+
+            #endregion ***** Connexió amb i sense usuari/password *****
+
+
+            // Initialize the EntityConnectionStringBuilder.
+            EntityConnectionStringBuilder entityBuilder = new EntityConnectionStringBuilder();
+
+            //Set the provider name.
+            entityBuilder.Provider = "System.Data.SqlClient";
+
+            // Set the provider-specific connection string.
+            entityBuilder.ProviderConnectionString = sqlBuilder.ToString();
+
+            // Set the Metadata location.
+            //entityBuilder.Metadata = @"res://*/Model2.csdl|res://*/Model2.ssdl|res://*/Model2.msl";
+            entityBuilder.Metadata = String.Format(@"res://*/{0}.csdl|res://*/{0}.ssdl|res://*/{0}.msl", model);
+
+            return entityBuilder.ToString();
+        }
+
+
+        #region Compara cadenes. Per camps string del ERP.
+
+        /// <summary>
+        /// Compara dues cadenes, elimina espais i ignora majuscules per defecte.
+        /// </summary>
+        /// <param name="s1"></param>
+        /// <param name="s2"></param>
+        /// <param name="stringComp"></param>
+        /// <returns></returns>
+        public static bool SonIguals(string s1, string s2, StringComparison stringComp = StringComparison.CurrentCultureIgnoreCase)
+        {
+            if (s1 != null)
+                s1 = s1.Trim();
+
+            if (s2 != null)
+                s2 = s2.Trim();
+
+            return String.Equals(s1, s2, stringComp);
+        }
+
+
+        /// <summary>
+        /// Comprova si s1 conté s2. Elimina espais de s2. No té en compte majúscules per defecte.
+        /// </summary>
+        /// <param name="s1"></param>
+        /// <param name="s2"></param>
+        /// <param name="stringComp"></param>
+        /// <returns></returns>
+        public static bool ConteString(string s1, string s2, StringComparison stringComp = StringComparison.CurrentCultureIgnoreCase)
+        {
+            if (String.Equals(s1, s2, StringComparison.CurrentCulture))
+                return true;
+
+            if (String.IsNullOrWhiteSpace(s1) || String.IsNullOrWhiteSpace(s2))
+                return false;
+
+            return s1.IndexOf(s2.Trim(), stringComp) >= 0;
+        }
+
+
+        /// <summary>
+        /// Extreu un valor de una cadena.
+        /// </summary>
+        /// <param name="stringConnexio"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static string ExtreuValor(string stringConnexio, string p)
+        {
+            string valor = null;
+            foreach (string va in stringConnexio.Split(';').Where(va => va.IndexOf(p, StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                valor = va.Remove(0, p.Length);
+            }
+
+            return valor;
+        }
+
+        #endregion
+
+
+        #region Llegeix fitxer configuració
+
+        /// <summary>
+        /// Llegeix una clau del fitxer en execució.
+        /// </summary>
+        /// <param name="clau"></param>
+        /// <returns></returns>
+        public static string LlegeixConfig(string clau)
+        {
+            try
+            {
+                return ConfigurationManager.AppSettings[clau];
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Llegeix una clau del fitxer .config
+        /// </summary>
+        /// <param name="type">DLL de la que colem llegir el fitxer config..</param>
+        /// <param name="clau">Clau a llegir</param>
+        /// <returns></returns>
+        public static string LlegeixConfig(Type type, string clau)
+        {
+            return LlegeixConfig(type.Assembly.Location, clau);
+        }
+
+        /// <summary>
+        /// Llegeix una clau del fitxer .config
+        /// </summary>
+        /// <param name="pathFitxerConfig">Path nom del fitxer config.</param>
+        /// <param name="clau">Clau a llegir</param>
+        /// <returns></returns>
+        public static string LlegeixConfig(string pathFitxerConfig, string clau)
+        {
+            ////Open the configuration file using the dll location
+            Configuration myDllConfig = ConfigurationManager.OpenExeConfiguration(pathFitxerConfig);
+
+            //// Get the appSettings section
+            AppSettingsSection myDllConfigAppSettings = (AppSettingsSection) myDllConfig.GetSection("appSettings");
+
+            return myDllConfigAppSettings.Settings[clau].Value;
+        }
+
+        #endregion
+
+
+        #region Tracta fitxer log
+
+
+        /// <summary>
+        /// Torna el fitxer log d'una DLL
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static FileInfo LlegeixFitxerLog(Type type)
+        {
+            FileInfo fitxerLog = null;
+
+            try
+            {
+                fitxerLog = new FileInfo(LlegeixConfig(type, "FitxerLog"));
+            }
+            catch
+            {
+                // Ho deixo pel finally
+            }
+            finally
+            {
+                if (fitxerLog == null || fitxerLog.Directory == null || !fitxerLog.Directory.Exists)
+                    fitxerLog = new FileInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Ngloba.log"));
+            }
+
+            return fitxerLog;
+        }
+
+
+        /// <summary>
+        /// Torna el fitxer log del fitxer en execució.
+        /// </summary>
+        /// <returns></returns>
+        public static FileInfo LlegeixFitxerLog()
+        {
+            FileInfo fitxerLog = null;
+
+            try
+            {
+                fitxerLog = new FileInfo(ConfigurationManager.AppSettings["FitxerLog"]);
+            }
+            catch
+            {
+                // Ho deixo pel finally
+            }
+            finally
+            {
+                if (fitxerLog == null || fitxerLog.Directory == null || !fitxerLog.Directory.Exists)
+                    fitxerLog = new FileInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Ngloba.log"));
+            }
+
+            return fitxerLog;
+        }
+
+
+        /// <summary>
+        /// Escriu en el fitxer log i mostra finestra al usuari.
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="fitxerLog"></param>
+        public static void EscriuLog(Exception ex, FileInfo fitxerLog)
+        {
+            EscriuLog(ex, ex.Message, fitxerLog, true, true);
+        }
+
+        /// <summary>
+        /// Escriu en el fitxer log sense mostrar cap finestra al usuari.
+        /// </summary>
+        /// <param name="ex">Excepció que s'escriurà en el log.</param>
+        /// <param name="missatgeFinestra">Missatge que es mostrarà al usuari en una finestra. Si null, no es mostra res.</param>
+        /// <param name="fitxerLog"></param>
+        /// <param name="mostraData"></param>
+        /// <param name="mostraTraça"></param>
+        /// <param name="esInnerException"></param>
+        public static void EscriuLog(Exception ex, string missatgeFinestra, FileInfo fitxerLog, bool mostraData = true, bool mostraTraça = false, bool esInnerException = false)
+        {
+            string missatge = String.Empty;
+
+            if (esInnerException)
+                missatge += "InnerException: ";
+
+            missatge += ex.GetType() + Environment.NewLine;
+
+            //missatge += "HResult==" + ex.HResult + Environment.NewLine;
+            missatge += "Message=" + ex.Message + Environment.NewLine;
+            missatge += "Source=" + ex.Source + Environment.NewLine;
+
+            if (mostraTraça)
+            {
+                missatge += "StackTrace:" + Environment.NewLine + ex.StackTrace;
+            }
+
+
+            // Fa que la finestra es mostri després d'haver gravat el fitxer log.
+            var missFin = ex.InnerException == null ? missatgeFinestra : null;
+
+            EscriuLog(missatge, missFin, fitxerLog, mostraData);
+
+            if (ex.InnerException != null)
+            {
+                // Crida recursiva
+                EscriuLog(ex.InnerException, missatgeFinestra, fitxerLog, false, mostraTraça, true);
+            }
+        }
+
+
+        public static void EscriuLog(DbEntityValidationException ex, string missatgeFinestra, FileInfo fitxerLog)
+        {
+            bool mostraData = true;
+            foreach (var eve in ex.EntityValidationErrors)
+            {
+                string xx = String.Format("Entity of type '{0}' in state '{1}' has the following validation errors:",
+                    eve.Entry.Entity.GetType().Name, eve.Entry.State);
+                EscriuLog(xx, missatgeFinestra, fitxerLog, mostraData);
+                missatgeFinestra = null;
+                mostraData = false;
+                foreach (var ve in eve.ValidationErrors)
+                {
+                    xx = String.Format("- Property: \"{0}\", Error: \"{1}\"", ve.PropertyName, ve.ErrorMessage);
+
+                    EscriuLog(xx, fitxerLog);
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Escriu en el fitxer log sense mostrar cap finestra al usuari.
+        /// </summary>
+        /// <param name="text">Text que s'escriurà.</param>
+        /// <param name="fitxerLog"></param>
+        public static void EscriuLog(string text, FileInfo fitxerLog)
+        {
+            EscriuLog(text, null, fitxerLog, false);
+        }
+
+        /// <summary>
+        /// Escriu en el fitxer log.
+        /// </summary>
+        /// <param name="text">Text que s'escriurà.</param>
+        /// <param name="missatgeFinestra">Missatge que es mostrarà al usuari en una finestra. Si null, no es mostra res.</param>
+        /// <param name="fitxerLog"></param>
+        /// <param name="mostraData"></param>
+        public static void EscriuLog(string text, string missatgeFinestra, FileInfo fitxerLog, bool mostraData)
+        {
+            using (StreamWriter w = fitxerLog.AppendText())
+            {
+                if (mostraData)
+                    w.WriteLine(Environment.NewLine + "--- Error. " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLocalTime());
+                w.WriteLine(text);
+            }
+
+            if (missatgeFinestra != null)
+                MessageBox.Show(missatgeFinestra + "\nConsultar el fichero: " + fitxerLog.FullName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        #endregion
+
+        #endregion *** Utilitats2 ***
+
     }
 }
