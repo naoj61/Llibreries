@@ -370,6 +370,17 @@ namespace Comuns
             return dataAnt;
         }
 
+        /// <summary>
+        /// Genera string de connexió per a Entity Framework.
+        /// </summary>
+        /// <param name="nomServidor"></param>
+        /// <param name="nomBaseDades"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static string ConnString(string nomServidor, string nomBaseDades, string model)
+        {
+            return ConnString(nomServidor, nomBaseDades, model, "UsuariNgloba", "340$Uuxwp2Mcxo9$Khy");
+        }
 
         /// <summary>
         /// Genera string de connexió per a Entity Framework.
