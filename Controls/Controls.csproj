@@ -47,6 +47,12 @@
     <Compile Include="DateTimePickerNullable.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Etiqueta1.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Etiqueta1.Designer.cs">
+      <DependentUpon>Etiqueta1.cs</DependentUpon>
+    </Compile>
     <Compile Include="FileBrowser2.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -69,6 +75,9 @@
     <Service Include="{94E38DFF-614B-4cbd-B67C-F211BB35CE8B}" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Etiqueta1.resx">
+      <DependentUpon>Etiqueta1.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FileBrowser.resx">
       <DependentUpon>FileBrowser.cs</DependentUpon>
     </EmbeddedResource>
