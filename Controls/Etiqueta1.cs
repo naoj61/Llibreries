@@ -11,16 +11,31 @@ namespace Controls
 {
     public partial class Etiqueta1 : UserControl
     {
+        private const int Alçada = 40;
+        private string vText;
+        private double? vValor;
+
+
         public Etiqueta1()
         {
             InitializeComponent();
+
+            Mascara = "#,##0.##";
         }
 
+        [Browsable(true)]
         public string Titol
         {
             get { return groupBox1.Text; }
             set { groupBox1.Text = value; }
         }
+
+        [Browsable(true)]
+        public bool ReadOnly
+        {
+            get { return TextBox1.ReadOnly; }
+            set { TextBox1.ReadOnly = value; }
+        }        
 
         [Browsable(false)]
         public override Font Font
@@ -39,36 +54,52 @@ namespace Controls
         [Browsable(true)]
         public Font FontText
         {
-            get { return label1.Font; }
-            set { label1.Font = value; }
+            get { return TextBox1.Font; }
+            set { TextBox1.Font = value; }
         }
 
-        private decimal vTextN;
-
-        [Browsable(true)]
-        public string TextA
+        public double? Valor
         {
-            get { return label1.Text; }
+            get { return vValor; }
             set
             {
-                try
+                if (value.HasValue)
                 {
-                    vTextN = Convert.ToDecimal(value);
-                    label1.Text = vTextN.ToString(Mascara);
-                    label1.RightToLeft = RightToLeft.Yes;
+                    TextBox1.Text = value.Value.ToString(Mascara);
+                    TextBox1.RightToLeft = RightToLeft.Yes;
                 }
-                catch (FormatException)
+                else
                 {
-                    label1.RightToLeft = RightToLeft.No;
-                    label1.Text = value;
-                    vTextN = 0;
+                    TextBox1.Text = null;
                 }
+
+                vText = TextBox1.Text;
+                vValor = value;
             }
         }
 
 
-        private const int Alçada = 40;
+        [Browsable(true)]
+        public override string Text
+        {
+            get { return vText; }
+            set
+            {
+                try
+                {
+                    Valor = Convert.ToDouble(value);
+                }
+                catch (FormatException)
+                {
+                    TextBox1.RightToLeft = RightToLeft.No;
+                    TextBox1.Text = value;
+                    vValor = null;
+                }
 
+                vText = value;
+                //base.Text = value;
+            }
+        }
 
         public override Size MinimumSize
         {

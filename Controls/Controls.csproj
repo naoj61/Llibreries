@@ -44,6 +44,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodiLupaDescripcio.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CodiLupaDescripcio.Designer.cs">
+      <DependentUpon>CodiLupaDescripcio.cs</DependentUpon>
+    </Compile>
     <Compile Include="DateTimePickerNullable.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -75,6 +81,9 @@
     <Service Include="{94E38DFF-614B-4cbd-B67C-F211BB35CE8B}" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="CodiLupaDescripcio.resx">
+      <DependentUpon>CodiLupaDescripcio.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Etiqueta1.resx">
       <DependentUpon>Etiqueta1.cs</DependentUpon>
     </EmbeddedResource>
@@ -86,6 +95,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
