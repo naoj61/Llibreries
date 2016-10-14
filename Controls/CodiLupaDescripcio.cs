@@ -125,6 +125,52 @@ namespace Controls
                 }
             }
         }
+
+
+        /// <summary>
+        /// Obre la finestra de seleccio del ERP corresponent a "T"
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="filtreSeleccio">Filtre que s'aplicarà a la selecció.</param>
+        public void ObreFinestraSeleccio<T>(string filtreSeleccio = "") where T : ICodiLupaDesc
+        {
+            var cli = (ICodiLupaDesc) typeof (T).GetMethod("Seleccionar").Invoke(null, new object[] {filtreSeleccio});
+            if (cli != null) // Si és null és perquè s'ha cancelat la cerca de proveidor.
+            {
+                tbCodiText.Text = cli._Clau;
+                tbDescripcio.Text = cli._Desc;
+            }
+        }
+
+
+        /// <summary>
+        /// Cerca un element del tipus "T" en el ERP.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="codi">Clau de cerca.</param>
+        /// <param name="obreFinestraSeleccioSiNoTrobaCodi">Indica si s'obrirà la finestra de selecció en cas de no trobar l'element.</param>
+        /// <param name="filtreSeleccio">Filtre que s'aplicarà a la selecció.</param>
+        public void BuscaElement<T>(string codi, bool obreFinestraSeleccioSiNoTrobaCodi, string filtreSeleccio = "") where T : ICodiLupaDesc
+        {
+            var cli = (ICodiLupaDesc) typeof (T).GetMethod("Buscar").Invoke(null, new object[] {codi});
+            if (cli == null)
+            {
+                tbDescripcio.Text = null;
+
+                if (obreFinestraSeleccioSiNoTrobaCodi)
+                {
+                    if(MessageBox.Show("Código no existe. Quiere abrir la ventana de selección?", "Atención", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                        ObreFinestraSeleccio<T>(filtreSeleccio);
+                }
+                else
+                    MessageBox.Show("Código no existe", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                tbCodiText.Text = cli._Clau;
+                tbDescripcio.Text = cli._Desc;
+            }
+        }
     }
 
 
@@ -132,7 +178,7 @@ namespace Controls
 
     public partial class CodiLupaDescripcioNum : ACodiLupaDescripcio
     {
-        public CodiLupaDescripcioNum() :base()
+        public CodiLupaDescripcioNum() : base()
         {
             base.Titol = "CodiLupaDescripcioNum";
             tbCodiNumeric.Visible = true;
@@ -145,7 +191,8 @@ namespace Controls
             set { tbCodiNumeric.Valor = value.HasValue ? value.Value : 0; }
         }
 
-        public override int AmpladaControlCodi {
+        public override int AmpladaControlCodi
+        {
             get { return tbCodiNumeric.Width; }
             set { tbCodiNumeric.Width = value; }
         }
@@ -180,3 +227,4 @@ namespace Controls
         }
     }
 }
+

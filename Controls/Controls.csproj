@@ -65,6 +65,7 @@
     <Compile Include="FileBrowser2.Designer.cs">
       <DependentUpon>FileBrowser2.cs</DependentUpon>
     </Compile>
+    <Compile Include="ICodiLupaDesc.cs" />
     <Compile Include="NumericTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
