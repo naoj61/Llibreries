@@ -55,7 +55,7 @@
             this.groupBox1.Location = new System.Drawing.Point(0, 0);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(300, 56);
-            this.groupBox1.TabIndex = 9;
+            this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "CodiLupaDescripcio";
             // 
@@ -76,7 +76,7 @@
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(294, 35);
-            this.tableLayoutPanel1.TabIndex = 9;
+            this.tableLayoutPanel1.TabIndex = 0;
             // 
             // tbCodiText
             // 
@@ -84,9 +84,10 @@
             this.tbCodiText.Margin = new System.Windows.Forms.Padding(5, 7, 3, 4);
             this.tbCodiText.Name = "tbCodiText";
             this.tbCodiText.Size = new System.Drawing.Size(86, 22);
-            this.tbCodiText.TabIndex = 4;
-            this.tbCodiText.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbCodiText_KeyDown);
-            this.tbCodiText.Leave += new System.EventHandler(this.tbCodiText_Leave);
+            this.tbCodiText.TabIndex = 0;
+            this.tbCodiText.Enter += new System.EventHandler(this.tbCodiText_Enter);
+            this.tbCodiText.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tb_KeyDown);
+            this.tbCodiText.Leave += new System.EventHandler(this.tb_Leave);
             // 
             // tbDescripcio
             // 
@@ -96,7 +97,7 @@
             this.tbDescripcio.Name = "tbDescripcio";
             this.tbDescripcio.ReadOnly = true;
             this.tbDescripcio.Size = new System.Drawing.Size(57, 22);
-            this.tbDescripcio.TabIndex = 7;
+            this.tbDescripcio.TabIndex = 3;
             // 
             // tbCodiNumeric
             // 
@@ -108,12 +109,13 @@
             this.tbCodiNumeric.Margin = new System.Windows.Forms.Padding(5, 7, 3, 4);
             this.tbCodiNumeric.Name = "tbCodiNumeric";
             this.tbCodiNumeric.Size = new System.Drawing.Size(86, 22);
-            this.tbCodiNumeric.TabIndex = 5;
+            this.tbCodiNumeric.TabIndex = 1;
             this.tbCodiNumeric.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.tbCodiNumeric.Valor = 0D;
             this.tbCodiNumeric.Visible = false;
-            this.tbCodiNumeric.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbCodiNumeric_KeyDown);
-            this.tbCodiNumeric.Leave += new System.EventHandler(this.tbCodiNumeric_Leave);
+            this.tbCodiNumeric.Enter += new System.EventHandler(this.tbCodiNumeric_Enter);
+            this.tbCodiNumeric.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tb_KeyDown);
+            this.tbCodiNumeric.Leave += new System.EventHandler(this.tb_Leave);
             // 
             // btLupa
             // 
@@ -122,7 +124,8 @@
             this.btLupa.Location = new System.Drawing.Point(191, 3);
             this.btLupa.Name = "btLupa";
             this.btLupa.Size = new System.Drawing.Size(34, 29);
-            this.btLupa.TabIndex = 6;
+            this.btLupa.TabIndex = 2;
+            this.btLupa.TabStop = false;
             this.btLupa.UseVisualStyleBackColor = true;
             this.btLupa.Click += new System.EventHandler(this.btLupa_Click);
             // 

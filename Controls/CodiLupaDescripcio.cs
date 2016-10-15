@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 
 namespace Controls
 {
@@ -43,6 +44,7 @@ namespace Controls
         }
 
         public abstract int AmpladaControlCodi { get; set; }
+        public abstract void focusCodi();
 
         [Browsable(false)]
         public override Font Font
@@ -86,25 +88,30 @@ namespace Controls
             {
                 Click(this, e);
             }
+
+            /* 
+             * Després de clicar la lupa torno a enfocar el codi.
+             * Això ho faig per si el codi no és correcte i la lupa es cancela no s'escapi el codi erroni.
+             */
+            focusCodi();
         }
 
-        private void tbCodiText_Leave(object sender, EventArgs e)
+        private void tb_Leave(object sender, EventArgs e)
         {
+            if (ActiveControl != null && ActiveControl.Equals(btLupa))
+            {
+                // Si s'ha clicat la lupa, no llença el Leave.
+                // Perquè funcioni: btLupa.TabStop = false
+                return;
+            }
+
             if (Leave != null)
             {
                 Leave(this, e);
             }
         }
 
-        private void tbCodiNumeric_Leave(object sender, EventArgs e)
-        {
-            if (Leave != null)
-            {
-                Leave(this, e);
-            }
-        }
-
-        private void tbCodiText_KeyDown(object sender, KeyEventArgs e)
+        private void tb_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Return)
             {
@@ -115,16 +122,33 @@ namespace Controls
             }
         }
 
-        private void tbCodiNumeric_KeyDown(object sender, KeyEventArgs e)
+        private string vCodiTextAct = null;
+        private void tbCodiText_Enter(object sender, EventArgs e)
         {
-            if (e.KeyCode == Keys.Return)
-            {
-                if (BuscaCodi != null)
-                {
-                    BuscaCodi(this, e);
-                }
-            }
+            vCodiTextAct = tbCodiText.Text;
         }
+
+        private double vCodiNumericAct = 0;
+        private void tbCodiNumeric_Enter(object sender, EventArgs e)
+        {
+            vCodiNumericAct = tbCodiNumeric.Valor;
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Escape)
+            {
+                // *** Procesa la tecla ESC, per alguna raó, no es dispara "KeyDown".
+                // *** Restaura valor codi.
+                if (tbCodiNumeric.Focused)
+                    tbCodiNumeric.Valor = vCodiNumericAct;
+                else if (tbCodiText.Focused)
+                    tbCodiText.Text = vCodiTextAct;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
 
 
         /// <summary>
@@ -132,14 +156,17 @@ namespace Controls
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="filtreSeleccio">Filtre que s'aplicarà a la selecció.</param>
-        public void ObreFinestraSeleccio<T>(string filtreSeleccio = "") where T : ICodiLupaDesc
+        public bool ObreFinestraSeleccio<T>(string filtreSeleccio = "") where T : ICodiLupaDesc
         {
+            bool result = false;
             var cli = (ICodiLupaDesc) typeof (T).GetMethod("Seleccionar").Invoke(null, new object[] {filtreSeleccio});
             if (cli != null) // Si és null és perquè s'ha cancelat la cerca de proveidor.
             {
                 tbCodiText.Text = cli._Clau;
                 tbDescripcio.Text = cli._Desc;
+                result = true;
             }
+            return result;
         }
 
 
@@ -150,33 +177,44 @@ namespace Controls
         /// <param name="codi">Clau de cerca.</param>
         /// <param name="obreFinestraSeleccioSiNoTrobaCodi">Indica si s'obrirà la finestra de selecció en cas de no trobar l'element.</param>
         /// <param name="filtreSeleccio">Filtre que s'aplicarà a la selecció.</param>
-        public void BuscaElement<T>(string codi, bool obreFinestraSeleccioSiNoTrobaCodi, string filtreSeleccio = "") where T : ICodiLupaDesc
+        public bool BuscaElement<T>(string codi, bool obreFinestraSeleccioSiNoTrobaCodi, string filtreSeleccio = "") where T : ICodiLupaDesc
         {
+            if (String.IsNullOrWhiteSpace(codi))
+            {
+                tbDescripcio.Text = null;
+                return true;
+            }
+
+            bool result = false;
+
             var cli = (ICodiLupaDesc) typeof (T).GetMethod("Buscar").Invoke(null, new object[] {codi});
             if (cli == null)
             {
                 tbDescripcio.Text = null;
 
+                var missatge = String.Format("Código de {0} no existe.", Titol);
                 if (obreFinestraSeleccioSiNoTrobaCodi)
                 {
-                    if(MessageBox.Show("Código no existe. Quiere abrir la ventana de selección?", "Atención", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-                        ObreFinestraSeleccio<T>(filtreSeleccio);
+                    if(MessageBox.Show(missatge + " Quiere abrir la ventana de selección?", "Atención", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                        result = ObreFinestraSeleccio<T>(filtreSeleccio);
                 }
                 else
-                    MessageBox.Show("Código no existe", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(missatge, "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             else
             {
                 tbCodiText.Text = cli._Clau;
                 tbDescripcio.Text = cli._Desc;
+                result = true;
             }
+            return result;
         }
     }
 
 
 
 
-    public partial class CodiLupaDescripcioNum : ACodiLupaDescripcio
+    public class CodiLupaDescripcioNum : ACodiLupaDescripcio
     {
         public CodiLupaDescripcioNum() : base()
         {
@@ -196,10 +234,14 @@ namespace Controls
             get { return tbCodiNumeric.Width; }
             set { tbCodiNumeric.Width = value; }
         }
+
+        public override void focusCodi()
+        {
+            tbCodiNumeric.Focus();
+        }
     }
 
-
-    public partial class CodiLupaDescripcioText : ACodiLupaDescripcio
+    public class CodiLupaDescripcioText : ACodiLupaDescripcio
     {
         public CodiLupaDescripcioText()
         {
@@ -224,6 +266,11 @@ namespace Controls
         {
             get { return tbCodiText.Width; }
             set { tbCodiText.Width = value; }
+        }
+
+        public override void focusCodi()
+        {
+            tbCodiText.Focus();
         }
     }
 }
