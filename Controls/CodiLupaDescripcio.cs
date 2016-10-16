@@ -14,6 +14,10 @@ namespace Controls
     [DefaultEvent("Click")]
     public abstract partial class ACodiLupaDescripcio : UserControl
     {
+        public abstract int AmpladaControlCodi { get; set; }
+        public abstract void focusCodi();
+        public abstract string _Codi { get; }
+
         public event EventHandler Click;
         public new event EventHandler Leave;
         public event KeyEventHandler BuscaCodi;
@@ -37,14 +41,22 @@ namespace Controls
             set { base.MaximumSize = new Size(value.Width, Alçada); }
         }
 
+        [Browsable(true)]
+        public new bool Enabled
+        {
+            get { return base.Enabled; }
+            set
+            {
+                base.Enabled = value;
+                btLupa.Visible = value;
+            }
+        }
+
         public string Titol
         {
             get { return groupBox1.Text; }
             set { groupBox1.Text = value; }
         }
-
-        public abstract int AmpladaControlCodi { get; set; }
-        public abstract void focusCodi();
 
         [Browsable(false)]
         public override Font Font
@@ -81,6 +93,8 @@ namespace Controls
             set { base.Text = value; }
         }
 
+
+        #region *** Events ***
 
         private void btLupa_Click(object sender, EventArgs e)
         {
@@ -149,7 +163,7 @@ namespace Controls
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
-
+#endregion *** Events ***
 
         /// <summary>
         /// Obre la finestra de seleccio del ERP corresponent a "T"
@@ -174,12 +188,11 @@ namespace Controls
         /// Cerca un element del tipus "T" en el ERP.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="codi">Clau de cerca.</param>
         /// <param name="obreFinestraSeleccioSiNoTrobaCodi">Indica si s'obrirà la finestra de selecció en cas de no trobar l'element.</param>
         /// <param name="filtreSeleccio">Filtre que s'aplicarà a la selecció.</param>
-        public bool BuscaElement<T>(string codi, bool obreFinestraSeleccioSiNoTrobaCodi, string filtreSeleccio = "") where T : ICodiLupaDesc
+        public bool BuscaElement<T>(bool obreFinestraSeleccioSiNoTrobaCodi, string filtreSeleccio = "") where T : ICodiLupaDesc
         {
-            if (String.IsNullOrWhiteSpace(codi))
+            if (String.IsNullOrWhiteSpace(_Codi))
             {
                 tbDescripcio.Text = null;
                 return true;
@@ -187,7 +200,7 @@ namespace Controls
 
             bool result = false;
 
-            var cli = (ICodiLupaDesc) typeof (T).GetMethod("Buscar").Invoke(null, new object[] {codi});
+            var cli = (ICodiLupaDesc)typeof(T).GetMethod("Buscar").Invoke(null, new object[] { _Codi, filtreSeleccio });
             if (cli == null)
             {
                 tbDescripcio.Text = null;
@@ -209,6 +222,8 @@ namespace Controls
             }
             return result;
         }
+    
+    
     }
 
 
@@ -238,6 +253,11 @@ namespace Controls
         public override void focusCodi()
         {
             tbCodiNumeric.Focus();
+        }
+
+        public override string _Codi
+        {
+            get { return tbCodiNumeric._DoubleValue.ToString(); }
         }
     }
 
@@ -271,6 +291,11 @@ namespace Controls
         public override void focusCodi()
         {
             tbCodiText.Focus();
+        }
+
+        public override string _Codi
+        {
+            get { return tbCodiText.Text; }
         }
     }
 }
