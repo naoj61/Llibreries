@@ -20,6 +20,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Comuns.Properties;
 using Microsoft.Win32;
 
 namespace Comuns
@@ -428,9 +429,9 @@ namespace Comuns
             return entityBuilder.ToString();
         }
 
-        public static string TitolFinestra(Form form, string nomModulVer)
+        public static string TitolFinestra(Form form, string nomModul)
         {
-            return String.Format("{0}{1}. -{2}-", nomModulVer, Assembly.GetAssembly(form.GetType()).GetName().Version, form.Text);
+            return String.Format(" -{3}- {0}. {1}={2}", nomModul, Resources.Versio, Assembly.GetAssembly(form.GetType()).GetName().Version, form.Text);
         }
 
 
