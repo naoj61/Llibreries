@@ -428,6 +428,11 @@ namespace Comuns
             return entityBuilder.ToString();
         }
 
+        public static string TitolFinestra(Form form, string nomModulVer)
+        {
+            return String.Format("{0}{1}. -{2}-", nomModulVer, Assembly.GetAssembly(form.GetType()).GetName().Version, form.Text);
+        }
+
 
         #region Compara cadenes. Per camps string del ERP.
 
@@ -699,6 +704,5 @@ namespace Comuns
         #endregion
 
         #endregion *** Utilitats2 ***
-
     }
 }
