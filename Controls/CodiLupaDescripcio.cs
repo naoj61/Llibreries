@@ -21,6 +21,7 @@ namespace Controls
         public event EventHandler Click;
         public new event EventHandler Leave;
         public event KeyEventHandler BuscaCodi;
+        public new event EventHandler Canviat;
 
         private const int Alçada = 56;
 
@@ -136,6 +137,23 @@ namespace Controls
             }
         }
 
+        private void tbCodiText_TextChanged(object sender, EventArgs e)
+        {
+            if (Canviat != null)
+            {
+                Canviat(this, e);
+            }
+        }
+
+        private void tbCodiNumeric_TextChanged(object sender, EventArgs e)
+        {
+            if (Canviat != null)
+            {
+                Canviat(this, e);
+            }
+        }
+
+
         private string vCodiTextAct = null;
         private void tbCodiText_Enter(object sender, EventArgs e)
         {
@@ -163,6 +181,7 @@ namespace Controls
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
+
 #endregion *** Events ***
 
         /// <summary>
@@ -172,15 +191,24 @@ namespace Controls
         /// <param name="filtreSeleccio">Filtre que s'aplicarà a la selecció.</param>
         public bool ObreFinestraSeleccio<T>(string filtreSeleccio = "") where T : ICodiLupaDesc
         {
-            bool result = false;
-            var cli = (ICodiLupaDesc) typeof (T).GetMethod("Seleccionar").Invoke(null, new object[] {filtreSeleccio});
-            if (cli != null) // Si és null és perquè s'ha cancelat la cerca de proveidor.
+            var cursor = this.Cursor;
+            try
             {
-                tbCodiText.Text = cli._Clau;
-                tbDescripcio.Text = cli._Desc;
-                result = true;
+                this.Cursor = Cursors.WaitCursor;
+                bool result = false;
+                var cli = (ICodiLupaDesc)typeof(T).GetMethod("Seleccionar").Invoke(null, new object[] { filtreSeleccio });
+                if (cli != null) // Si és null és perquè s'ha cancelat la cerca de proveidor.
+                {
+                    tbCodiText.Text = cli._Clau;
+                    tbDescripcio.Text = cli._Desc;
+                    result = true;
+                }
+                return result;
             }
-            return result;
+            finally
+            {
+                this.Cursor = cursor;
+            }
         }
 
 
@@ -199,31 +227,41 @@ namespace Controls
             }
 
             bool result = false;
+            var cursor = this.Cursor;
 
-            var cli = (ICodiLupaDesc)typeof(T).GetMethod("Buscar").Invoke(null, new object[] { _Codi, filtreSeleccio });
-            if (cli == null)
+            try
             {
-                tbDescripcio.Text = null;
+                this.Cursor = Cursors.WaitCursor;
 
-                var missatge = String.Format("Código de {0} no existe.", Titol);
-                if (obreFinestraSeleccioSiNoTrobaCodi)
+                var cli = (ICodiLupaDesc)typeof(T).GetMethod("Buscar").Invoke(null, new object[] { _Codi, filtreSeleccio });
+                if (cli == null)
                 {
-                    if(MessageBox.Show(missatge + " Quiere abrir la ventana de selección?", "Atención", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-                        result = ObreFinestraSeleccio<T>(filtreSeleccio);
+                    tbDescripcio.Text = null;
+
+                    var missatge = String.Format("Código de {0} no existe.", Titol);
+                    if (obreFinestraSeleccioSiNoTrobaCodi)
+                    {
+                        if (MessageBox.Show(missatge + " Quiere abrir la ventana de selección?", "Atención", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                            result = ObreFinestraSeleccio<T>(filtreSeleccio);
+                    }
+                    else
+                        MessageBox.Show(missatge, "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 else
-                    MessageBox.Show(missatge, "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                {
+                    tbCodiText.Text = cli._Clau;
+                    tbDescripcio.Text = cli._Desc;
+                    result = true;
+                }
             }
-            else
+            finally
             {
-                tbCodiText.Text = cli._Clau;
-                tbDescripcio.Text = cli._Desc;
-                result = true;
+                this.Cursor = cursor;
             }
+
             return result;
         }
-    
-    
+
     }
 
 

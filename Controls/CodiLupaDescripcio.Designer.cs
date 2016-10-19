@@ -85,6 +85,7 @@
             this.tbCodiText.Name = "tbCodiText";
             this.tbCodiText.Size = new System.Drawing.Size(86, 22);
             this.tbCodiText.TabIndex = 0;
+            this.tbCodiText.TextChanged += new System.EventHandler(this.tbCodiText_TextChanged);
             this.tbCodiText.Enter += new System.EventHandler(this.tbCodiText_Enter);
             this.tbCodiText.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tb_KeyDown);
             this.tbCodiText.Leave += new System.EventHandler(this.tb_Leave);
@@ -113,6 +114,7 @@
             this.tbCodiNumeric.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.tbCodiNumeric.Valor = 0D;
             this.tbCodiNumeric.Visible = false;
+            this.tbCodiNumeric.TextChanged += new System.EventHandler(this.tbCodiNumeric_TextChanged);
             this.tbCodiNumeric.Enter += new System.EventHandler(this.tbCodiNumeric_Enter);
             this.tbCodiNumeric.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tb_KeyDown);
             this.tbCodiNumeric.Leave += new System.EventHandler(this.tb_Leave);
