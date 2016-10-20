@@ -608,7 +608,12 @@ namespace Comuns
         /// <param name="fitxerLog"></param>
         public static void EscriuLog(Exception ex, FileInfo fitxerLog)
         {
-            EscriuLog(ex, ex.Message, fitxerLog, true, true);
+            EscriuLog(ex, UltimaInnerExceptio(ex).Message, fitxerLog, true, true);
+        }
+
+        private static Exception UltimaInnerExceptio(Exception ex)
+        {
+            return ex.InnerException == null ? ex : UltimaInnerExceptio(ex.InnerException);
         }
 
         /// <summary>

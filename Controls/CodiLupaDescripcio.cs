@@ -194,7 +194,7 @@ namespace Controls
             var cursor = this.Cursor;
             try
             {
-                this.Cursor = Cursors.WaitCursor;
+                this.ParentForm.Cursor = Cursors.WaitCursor;
                 bool result = false;
                 var cli = (ICodiLupaDesc)typeof(T).GetMethod("Seleccionar").Invoke(null, new object[] { filtreSeleccio });
                 if (cli != null) // Si és null és perquè s'ha cancelat la cerca de proveidor.
@@ -207,7 +207,7 @@ namespace Controls
             }
             finally
             {
-                this.Cursor = cursor;
+                this.ParentForm.Cursor = cursor;
             }
         }
 
@@ -231,7 +231,7 @@ namespace Controls
 
             try
             {
-                this.Cursor = Cursors.WaitCursor;
+                this.ParentForm.Cursor = Cursors.WaitCursor;
 
                 var cli = (ICodiLupaDesc)typeof(T).GetMethod("Buscar").Invoke(null, new object[] { _Codi, filtreSeleccio });
                 if (cli == null)
@@ -256,7 +256,7 @@ namespace Controls
             }
             finally
             {
-                this.Cursor = cursor;
+                this.ParentForm.Cursor = cursor;
             }
 
             return result;
