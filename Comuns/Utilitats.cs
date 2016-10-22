@@ -434,6 +434,17 @@ namespace Comuns
             return String.Format(" -{3}- {0}. {1}={2}", nomModul, Resources.Versio, Assembly.GetAssembly(form.GetType()).GetName().Version, form.Text);
         }
 
+        /// <summary>
+        /// Comprova si la expresio conté un valor numèric
+        /// </summary>
+        /// <param name="expresio"></param>
+        /// <returns></returns>
+        public static bool EsNumeric(string expresio)
+        {
+            double retNum;
+            return Double.TryParse(Convert.ToString(expresio), System.Globalization.NumberStyles.Any, System.Globalization.NumberFormatInfo.InvariantInfo, out retNum);
+        }
+
 
         #region Compara cadenes. Per camps string del ERP.
 
