@@ -16,14 +16,21 @@ namespace Controls
     {
         public abstract int AmpladaControlCodi { get; set; }
         public abstract void focusCodi();
-        public abstract string _Codi { get; }
+        public abstract string _Codi { get; set; }
 
-        public event EventHandler Click;
-        public new event EventHandler Leave;
+        public new event EventHandler Click;
+        //public new event EventHandler Leave;
         public event KeyEventHandler BuscaCodi;
-        public new event EventHandler Canviat;
+        public event EventHandler Canviat;
 
         private const int Alçada = 56;
+
+
+        public string _Descripcio
+        {
+            get { return tbDescripcio.Text; }
+            set { tbDescripcio.Text = value; }
+        }
 
         protected ACodiLupaDescripcio()
         {
@@ -108,7 +115,8 @@ namespace Controls
              * Després de clicar la lupa torno a enfocar el codi.
              * Això ho faig per si el codi no és correcte i la lupa es cancela no s'escapi el codi erroni.
              */
-            focusCodi();
+            if (String.IsNullOrWhiteSpace(tbDescripcio.Text))
+                focusCodi();
         }
 
         private void tb_Leave(object sender, EventArgs e)
@@ -120,10 +128,11 @@ namespace Controls
                 return;
             }
 
-            if (Leave != null)
-            {
-                Leave(this, e);
-            }
+            BuscaCodi(this, new KeyEventArgs(Keys.Right));
+            //if (Leave != null)
+            //{
+            //    Leave(this, e);
+            //}
         }
 
         private void tb_KeyDown(object sender, KeyEventArgs e)
@@ -183,6 +192,27 @@ namespace Controls
 
 
 #endregion *** Events ***
+
+        /// <summary>
+        /// Assigna valor als camps del control
+        /// </summary>
+        public ICodiLupaDesc _Valor
+        {
+            set
+            {
+                if (value == null)
+                {
+                    _Codi = null;
+                    _Descripcio = null;
+                }
+                else
+                {
+                    _Codi = value._Clau;
+                    _Descripcio = value._Desc;
+                }
+            }
+        }
+        
 
         /// <summary>
         /// Obre la finestra de seleccio del ERP corresponent a "T"
@@ -312,6 +342,17 @@ namespace Controls
         public override string _Codi
         {
             get { return tbCodiNumeric._DoubleValue.ToString(); }
+            set
+            {
+                try
+                {
+                    tbCodiNumeric.Valor = Convert.ToDouble(value);
+                }
+                catch (Exception)
+                {
+                    tbCodiNumeric.Valor = 0;
+                }
+            }
         }
     }
 
@@ -322,18 +363,6 @@ namespace Controls
             base.Titol = "CodiLupaDescripcioText";
             tbCodiNumeric.Visible = false;
             tbCodiText.Visible = true;
-        }
-
-        public string TextCodi
-        {
-            get { return tbCodiText.Text; }
-            set { tbCodiText.Text = value; }
-        }
-
-        public string TextDescripcio
-        {
-            get { return tbDescripcio.Text; }
-            set { tbDescripcio.Text = value; }
         }
 
         public override int AmpladaControlCodi
@@ -350,6 +379,7 @@ namespace Controls
         public override string _Codi
         {
             get { return tbCodiText.Text; }
+            set { tbCodiText.Text = value; }
         }
     }
 }
