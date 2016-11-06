@@ -18,6 +18,8 @@ namespace Controls
             _PermetEspais = false;
         }
 
+        public event EventHandler ValorChanged;
+
         // Desa el format original de Text, abans d'aplicar el format.
         private string vTextAnt = null;
         private static readonly char DecimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
@@ -128,6 +130,9 @@ namespace Controls
                 Text = EliminaCaracterNoNumerics(base.Text);
                 vPaste = false;
             }
+
+            if(!Equals(Text, vTextAnt) && ValorChanged != null)
+                ValorChanged(this, e);
         }
 
 
