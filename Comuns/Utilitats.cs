@@ -550,7 +550,8 @@ namespace Comuns
             //// Get the appSettings section
             AppSettingsSection myDllConfigAppSettings = (AppSettingsSection) myDllConfig.GetSection("appSettings");
 
-            return myDllConfigAppSettings.Settings[clau].Value;
+            var llistaElements = myDllConfigAppSettings.Settings[clau];
+            return llistaElements == null ? null : llistaElements.Value;
         }
 
         #endregion
