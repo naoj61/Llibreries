@@ -704,19 +704,27 @@ namespace Comuns
         /// </summary>
         /// <param name="text">Text que s'escriurà.</param>
         /// <param name="missatgeFinestra">Missatge que es mostrarà al usuari en una finestra. Si null, no es mostra res.</param>
-        /// <param name="fitxerLog"></param>
+        /// <param name="fitxerLog">Si null, només mostra finestra.</param>
         /// <param name="mostraData"></param>
         public static void EscriuLog(string text, string missatgeFinestra, FileInfo fitxerLog, bool mostraData)
         {
-            using (StreamWriter w = fitxerLog.AppendText())
+            if (fitxerLog != null)
             {
-                if (mostraData)
-                    w.WriteLine(Environment.NewLine + "--- Error. " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLocalTime());
-                w.WriteLine(text);
-            }
+                using (StreamWriter w = fitxerLog.AppendText())
+                {
+                    if (mostraData)
+                        w.WriteLine(Environment.NewLine + "--- Error. " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLocalTime());
+                    w.WriteLine(text);
+                }
 
-            if (missatgeFinestra != null)
-                MessageBox.Show(missatgeFinestra + "\nConsultar el fichero: " + fitxerLog.FullName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (missatgeFinestra != null)
+                    MessageBox.Show(missatgeFinestra + "\nConsultar el fichero: " + fitxerLog.FullName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                if (missatgeFinestra != null)
+                    MessageBox.Show(missatgeFinestra, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         #endregion
