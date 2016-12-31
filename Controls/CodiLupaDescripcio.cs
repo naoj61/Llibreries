@@ -193,11 +193,14 @@ namespace Controls
 
 #endregion *** Events ***
 
+        private ICodiLupaDesc vValor;
+
         /// <summary>
         /// Assigna valor als camps del control
         /// </summary>
         public ICodiLupaDesc _Valor
         {
+            get { return vValor; }
             set
             {
                 if (value == null)
@@ -210,6 +213,7 @@ namespace Controls
                     _Codi = value._Clau;
                     _Descripcio = value._Desc;
                 }
+                vValor = value;
             }
         }
         
@@ -228,7 +232,7 @@ namespace Controls
             {
                 ParentForm.Cursor = Cursors.WaitCursor;
 
-                cli = (T)typeof(T).GetMethod("Seleccionar").Invoke(null, new object[] { filtreSeleccio });
+                cli = (T)typeof(T).GetMethod("ObreFinestraSeleccio").Invoke(null, new object[] { filtreSeleccio });
                 if (cli != null) // Si és null és perquè s'ha cancelat la cerca de proveidor.
                 {
                     tbCodiText.Text = cli._Clau;
@@ -239,6 +243,8 @@ namespace Controls
             {
                 ParentForm.Cursor = cursor;
             }
+
+            vValor = cli;
             return cli;
         }
 
@@ -290,6 +296,7 @@ namespace Controls
                 ParentForm.Cursor = cursor;
             }
 
+            vValor = cli;
             return cli;
         }
 
@@ -322,7 +329,7 @@ namespace Controls
             tbCodiText.Visible = false;
         }
 
-        public double? CodiNumeric
+        public double? _CodiNumeric
         {
             get { return tbCodiNumeric._DoubleValue; }
             set { tbCodiNumeric.Valor = value.HasValue ? value.Value : 0; }
@@ -336,6 +343,7 @@ namespace Controls
 
         public override void focusCodi()
         {
+            Focus();
             tbCodiNumeric.Focus();
         }
 
@@ -373,6 +381,7 @@ namespace Controls
 
         public override void focusCodi()
         {
+            Focus();
             tbCodiText.Focus();
         }
 
