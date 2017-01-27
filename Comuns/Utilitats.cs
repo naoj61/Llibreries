@@ -618,9 +618,10 @@ namespace Comuns
         /// </summary>
         /// <param name="ex"></param>
         /// <param name="fitxerLog"></param>
-        public static void EscriuLog(Exception ex, FileInfo fitxerLog)
+        /// <param name="versio"></param>
+        public static void EscriuLog(Exception ex, FileInfo fitxerLog, Version versio)
         {
-            EscriuLog(ex, UltimaInnerExceptio(ex).Message, fitxerLog, true, true);
+            EscriuLog(ex, UltimaInnerExceptio(ex).Message, fitxerLog, versio, true, true);
         }
 
         private static Exception UltimaInnerExceptio(Exception ex)
@@ -634,10 +635,11 @@ namespace Comuns
         /// <param name="ex">Excepció que s'escriurà en el log.</param>
         /// <param name="missatgeFinestra">Missatge que es mostrarà al usuari en una finestra. Si null, no es mostra res.</param>
         /// <param name="fitxerLog"></param>
+        /// <param name="versio"></param>
         /// <param name="mostraData"></param>
         /// <param name="mostraTraça"></param>
         /// <param name="esInnerException"></param>
-        public static void EscriuLog(Exception ex, string missatgeFinestra, FileInfo fitxerLog, bool mostraData = true, bool mostraTraça = false, bool esInnerException = false)
+        public static void EscriuLog(Exception ex, string missatgeFinestra, FileInfo fitxerLog, Version versio, bool mostraData = true, bool mostraTraça = false, bool esInnerException = false)
         {
             string missatge = String.Empty;
 
@@ -659,24 +661,24 @@ namespace Comuns
             // Fa que la finestra es mostri després d'haver gravat el fitxer log.
             var missFin = ex.InnerException == null ? missatgeFinestra : null;
 
-            EscriuLog(missatge, missFin, fitxerLog, mostraData);
+            EscriuLog(missatge, missFin, fitxerLog, mostraData, versio);
 
             if (ex.InnerException != null)
             {
                 // Crida recursiva
-                EscriuLog(ex.InnerException, missatgeFinestra, fitxerLog, false, mostraTraça, true);
+                EscriuLog(ex.InnerException, missatgeFinestra, fitxerLog, versio, false, mostraTraça, true);
             }
         }
 
 
-        public static void EscriuLog(DbEntityValidationException ex, string missatgeFinestra, FileInfo fitxerLog)
+        public static void EscriuLog(DbEntityValidationException ex, string missatgeFinestra, FileInfo fitxerLog, Version versio)
         {
             bool mostraData = true;
             foreach (var eve in ex.EntityValidationErrors)
             {
                 string xx = String.Format("Entity of type '{0}' in state '{1}' has the following validation errors:",
                     eve.Entry.Entity.GetType().Name, eve.Entry.State);
-                EscriuLog(xx, missatgeFinestra, fitxerLog, mostraData);
+                EscriuLog(xx, missatgeFinestra, fitxerLog, mostraData, versio);
                 missatgeFinestra = null;
                 mostraData = false;
                 foreach (var ve in eve.ValidationErrors)
@@ -694,9 +696,10 @@ namespace Comuns
         /// </summary>
         /// <param name="text">Text que s'escriurà.</param>
         /// <param name="fitxerLog"></param>
+        /// <param name="versio"></param>
         public static void EscriuLog(string text, FileInfo fitxerLog)
         {
-            EscriuLog(text, null, fitxerLog, false);
+            EscriuLog(text, null, fitxerLog, false, null);
         }
 
         /// <summary>
@@ -706,14 +709,18 @@ namespace Comuns
         /// <param name="missatgeFinestra">Missatge que es mostrarà al usuari en una finestra. Si null, no es mostra res.</param>
         /// <param name="fitxerLog">Si null, només mostra finestra.</param>
         /// <param name="mostraData"></param>
-        public static void EscriuLog(string text, string missatgeFinestra, FileInfo fitxerLog, bool mostraData)
+        /// <param name="versio"></param>
+        public static void EscriuLog(string text, string missatgeFinestra, FileInfo fitxerLog, bool mostraData, Version versio)
         {
             if (fitxerLog != null)
             {
                 using (StreamWriter w = fitxerLog.AppendText())
                 {
                     if (mostraData)
-                        w.WriteLine(Environment.NewLine + "--- Error. " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLocalTime());
+                    {
+                        //w.WriteLine(Environment.NewLine + "--- Error. " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLocalTime());
+                        w.WriteLine(Environment.NewLine + String.Format("--- Error. {0} {1}. Versión: {2}", DateTime.Now.ToLongDateString(), DateTime.Now.ToLocalTime(), versio));
+                    }
                     w.WriteLine(text);
                 }
 
