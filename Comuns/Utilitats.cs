@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.Entity;
 using System.Data.Entity.Core.EntityClient;
 using System.Data.Entity.Validation;
 using System.Data.SqlClient;
@@ -44,6 +45,19 @@ namespace Comuns
             LongitudAdrecaMacIncorrecta,
             LlicenciaCaducada
         }
+
+        public enum Monedes
+        {
+            EUR,
+            USD
+        }
+
+
+        public static DateTime DataBd(DbContext dbContext)
+        {
+            return dbContext.Database.SqlQuery<DateTime>("Select GetDate()").First();
+        }
+
 
         public static List<string> NumSerieHd()
         {
