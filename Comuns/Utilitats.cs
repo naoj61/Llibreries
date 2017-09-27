@@ -480,6 +480,79 @@ namespace Comuns
             return String.Equals(s1, s2, stringComp);
         }
 
+        /// <summary>
+        /// Comprova si els números son iguals eliminant els decimals que queden més enlla de la tolerància.
+        /// </summary>
+        /// <param name="numero1"></param>
+        /// <param name="numero2"></param>
+        /// <param name="decimalsTolerància"></param>
+        /// <returns></returns>
+        public static bool SonIguals(double numero1, double numero2, int decimalsTolerància = 5)
+        {
+            return EsZero(numero1 - numero2, decimalsTolerància);
+        }
+
+
+        /// <summary>
+        /// Forma DateTime a partir dels paràmetres data i hora.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="hora">Si null, posa la hora actual.</param>
+        /// <returns></returns>
+        public static DateTime FormaData(DateTime data, TimeSpan? hora)
+        {
+            return data.Date + (hora.HasValue ? hora.Value : DateTime.Now.TimeOfDay);
+        }
+
+        /// <summary>
+        /// Poso la hora al final del dia
+        /// </summary>
+        /// <param name="dataFinal"></param>
+        /// <returns></returns>
+        public static DateTime DataFinalDia(DateTime? dataFinal)
+        {
+            var dFinal = dataFinal.HasValue ? dataFinal.Value : DateTime.MaxValue;
+            return dFinal == DateTime.MaxValue ? dFinal : dFinal.AddDays(1).AddTicks(-1); // 
+        }
+
+
+        /// <summary>
+        /// Posa la hora 00:00:00 a la data.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static DateTime DataHoraIniciDia(DateTime data)
+        {
+            return data.Date;
+        }
+
+        /// <summary>
+        /// Posa la hora 23:59:59 a la data.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static DateTime DataHoraFinalDia(DateTime data)
+        {
+            return  data < DateTime.MaxValue ? data.Date.AddDays(1).AddTicks(-1) : DateTime.MaxValue;
+        }
+
+
+        /// <summary>
+        /// Comprova si un número és zero eliminant els decimals que queden més enlla de la tolerància.
+        /// </summary>
+        /// <param name="numero">Número a comprovar.</param>
+        /// <param name="decimalsTolerància">Son els decimals que es tintran en compte. Si = 0 només es compara la part entera.</param>
+        /// <returns></returns>
+        public static bool EsZero(double numero, int decimalsTolerància = 5)
+        {
+            if (decimalsTolerància < 0)
+                throw new ArgumentException("Ha de ser iguam o més gran de zero", "decimalsTolerància");
+
+            int multiplicador = (int) Math.Pow(10, decimalsTolerància);
+
+            numero *= multiplicador; // Faig correr la coma decimal a la dreta tantes posicions com "decimalsTolerància". 0.001 -> 0.01
+            return (int)Math.Truncate(numero) == 0;
+        }
 
         /// <summary>
         /// Comprova si s1 conté s2. Elimina espais de s2. No té en compte majúscules per defecte.
@@ -749,6 +822,12 @@ namespace Comuns
         }
 
         #endregion
+
+
+        public static DateTime ArrodoneixoDataASegons(DateTime dataHora)
+        {
+            return new DateTime(dataHora.Year, dataHora.Month, dataHora.Day, dataHora.Hour, dataHora.Minute, dataHora.Second, 0);
+        }
 
         #endregion *** Utilitats2 ***
     }
