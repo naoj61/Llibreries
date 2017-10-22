@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace Controls
 {
-    public class NumericTextBox2 : TextBox
+    public class NumericTextBox2 : TextBox, IValorControlRestaurable
     {
         public NumericTextBox2()
         {
@@ -91,12 +91,11 @@ namespace Controls
             return new String(text.Where(c => char.IsDigit(c) || c == DecimalSeparator || c == '-').ToArray());
         }
 
-
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
 
-            if (e.KeyCode == Keys.Escape)
+            if (e.KeyCode == Keys.Escape && vCapturaEscape)
             {
                 Text = vTextAnt;
 
@@ -203,6 +202,14 @@ namespace Controls
                 base.Text = value;
                 vTextAnt = value;
             }
+        }
+
+        private bool vCapturaEscape = true;
+        [Description("Si true, restaura valor inicial al premer ESC.")]
+        public bool _CapturaEscape
+        {
+            get { return vCapturaEscape; }
+            set { vCapturaEscape = value; }
         }
     }
 }

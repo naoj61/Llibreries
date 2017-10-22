@@ -50,6 +50,12 @@
     <Compile Include="CodiLupaDescripcio.Designer.cs">
       <DependentUpon>CodiLupaDescripcio.cs</DependentUpon>
     </Compile>
+    <Compile Include="ComboBox2.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ComboBox2.Designer.cs">
+      <DependentUpon>ComboBox2.cs</DependentUpon>
+    </Compile>
     <Compile Include="DateTimePickerNullable.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -66,6 +72,7 @@
       <DependentUpon>FileBrowser2.cs</DependentUpon>
     </Compile>
     <Compile Include="ICodiLupaDesc.cs" />
+    <Compile Include="IValorControlRestaurable.cs" />
     <Compile Include="NumericTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
