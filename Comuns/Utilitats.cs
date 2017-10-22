@@ -355,6 +355,16 @@ namespace Comuns
         }
 
 
+        /// <summary>
+        /// Substitueix DesignMode que no funciona en subcontrols.
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsInDesignMode()
+        {
+            return Application.ExecutablePath.IndexOf("devenv.exe", StringComparison.OrdinalIgnoreCase) > -1;
+        }
+
+
         public static void MostraFinestraAmbError(Exception ex)
         {
             string msg;
@@ -507,7 +517,7 @@ namespace Comuns
         /// <summary>
         /// Poso la hora al final del dia
         /// </summary>
-        /// <param name="dataFinal"></param>
+        /// <param name="dataFinal">Si null, torno DateTime.MaxValue</param>
         /// <returns></returns>
         public static DateTime DataFinalDia(DateTime? dataFinal)
         {
@@ -716,6 +726,21 @@ namespace Comuns
             return ex.InnerException == null ? ex : UltimaInnerExceptio(ex.InnerException);
         }
 
+
+        /// <summary>
+        /// Escriu en el fitxer log sense mostrar cap finestra al usuari.
+        /// </summary>
+        /// <param name="ex"></param>
+        public static void EscriuLog(Exception ex)
+        {
+            EscriuLog(ex, null, null, null);
+        }
+
+        public static void EscriuLog(string missatge)
+        {
+            EscriuLog(missatge, null);
+        }
+
         /// <summary>
         /// Escriu en el fitxer log sense mostrar cap finestra al usuari.
         /// </summary>
@@ -748,6 +773,18 @@ namespace Comuns
             // Fa que la finestra es mostri després d'haver gravat el fitxer log.
             var missFin = ex.InnerException == null ? missatgeFinestra : null;
 
+            DbEntityValidationException ex2 = ex as DbEntityValidationException;
+            if (ex2 != null)
+            {
+                if (ex2.EntityValidationErrors.Any())
+                    missatge += "\nEntityValidationErrors:";
+
+                foreach (var err2 in ex2.EntityValidationErrors.SelectMany(err => err.ValidationErrors))
+                {
+                    missatge += String.Format("\nPropietat: {0}. Error: {1}", err2.PropertyName, err2.ErrorMessage);
+                }
+            }
+
             EscriuLog(missatge, missFin, fitxerLog, mostraData, versio);
 
             if (ex.InnerException != null)
@@ -758,24 +795,24 @@ namespace Comuns
         }
 
 
-        public static void EscriuLog(DbEntityValidationException ex, string missatgeFinestra, FileInfo fitxerLog, Version versio)
-        {
-            bool mostraData = true;
-            foreach (var eve in ex.EntityValidationErrors)
-            {
-                string xx = String.Format("Entity of type '{0}' in state '{1}' has the following validation errors:",
-                    eve.Entry.Entity.GetType().Name, eve.Entry.State);
-                EscriuLog(xx, missatgeFinestra, fitxerLog, mostraData, versio);
-                missatgeFinestra = null;
-                mostraData = false;
-                foreach (var ve in eve.ValidationErrors)
-                {
-                    xx = String.Format("- Property: \"{0}\", Error: \"{1}\"", ve.PropertyName, ve.ErrorMessage);
+        //public static void EscriuLog(DbEntityValidationException ex, string missatgeFinestra, FileInfo fitxerLog, Version versio)
+        //{
+        //    bool mostraData = true;
+        //    foreach (var eve in ex.EntityValidationErrors)
+        //    {
+        //        string xx = String.Format("Entity of type '{0}' in state '{1}' has the following validation errors:",
+        //            eve.Entry.Entity.GetType().Name, eve.Entry.State);
+        //        EscriuLog(xx, missatgeFinestra, fitxerLog, mostraData, versio);
+        //        missatgeFinestra = null;
+        //        mostraData = false;
+        //        foreach (var ve in eve.ValidationErrors)
+        //        {
+        //            xx = String.Format("- Property: \"{0}\", Error: \"{1}\"", ve.PropertyName, ve.ErrorMessage);
 
-                    EscriuLog(xx, fitxerLog);
-                }
-            }
-        }
+        //            EscriuLog(xx, fitxerLog);
+        //        }
+        //    }
+        //}
 
 
         /// <summary>
@@ -816,6 +853,8 @@ namespace Comuns
             }
             else
             {
+                    missatgeFinestra += "\n" + text;
+
                 if (missatgeFinestra != null)
                     MessageBox.Show(missatgeFinestra, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
