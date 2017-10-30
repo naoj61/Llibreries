@@ -773,21 +773,25 @@ namespace Comuns
             // Fa que la finestra es mostri després d'haver gravat el fitxer log.
             var missFin = ex.InnerException == null ? missatgeFinestra : null;
 
-            DbEntityValidationException ex2 = ex as DbEntityValidationException;
-            if (ex2 != null)
+            if (ex.InnerException == null)
             {
-                if (ex2.EntityValidationErrors.Any())
-                    missatge += "\nEntityValidationErrors:";
 
-                foreach (var err2 in ex2.EntityValidationErrors.SelectMany(err => err.ValidationErrors))
+                DbEntityValidationException ex2 = ex as DbEntityValidationException;
+                if (ex2 != null)
                 {
-                    missatge += String.Format("\nPropietat: {0}. Error: {1}", err2.PropertyName, err2.ErrorMessage);
+                    if (ex2.EntityValidationErrors.Any())
+                        missatge += "\nEntityValidationErrors:";
+
+                    foreach (var err2 in ex2.EntityValidationErrors.SelectMany(err => err.ValidationErrors))
+                    {
+                        missatge += String.Format("\nPropietat: {0}. Error: {1}", err2.PropertyName, err2.ErrorMessage);
+                    }
                 }
+
+                EscriuLog(missatge, missFin, fitxerLog, mostraData, versio);
             }
 
-            EscriuLog(missatge, missFin, fitxerLog, mostraData, versio);
-
-            if (ex.InnerException != null)
+            else
             {
                 // Crida recursiva
                 EscriuLog(ex.InnerException, missatgeFinestra, fitxerLog, versio, false, mostraTraça, true);
