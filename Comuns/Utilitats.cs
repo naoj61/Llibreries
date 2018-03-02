@@ -209,8 +209,8 @@ namespace Comuns
         {
             //http://weblogs.asp.net/fmarguerie/archive/2008/01/02/rethrowing-exceptions-and-preserving-the-full-call-stack-trace.aspx
 
-            System.Reflection.MethodInfo preserveStackTrace = typeof (Exception).GetMethod("InternalPreserveStackTrace",
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            MethodInfo preserveStackTrace = typeof (Exception).GetMethod("InternalPreserveStackTrace",
+                BindingFlags.Instance | BindingFlags.NonPublic);
             preserveStackTrace.Invoke(exception, null);
         }
 
@@ -294,7 +294,7 @@ namespace Comuns
             {
                 //string claureg = "Software" + Path.DirectorySeparatorChar + MediaTypeNames.Application.CompanyName + Path.DirectorySeparatorChar + "CIP3";
                 string claureg = "Software" + Path.DirectorySeparatorChar + nomCompanyia + Path.DirectorySeparatorChar + "CIP3";
-                string x = Comuns.Utilitats.LlegeixVariableRegistre(Microsoft.Win32.Registry.CurrentUser, claureg, "Lic");
+                string x = LlegeixVariableRegistre(Registry.CurrentUser, claureg, "Lic");
 
                 if (x == "2")
                     throw new UtilitatsException(Errors.LlicenciaCaducada); //MediaTypeNames.Application.Exit();
@@ -304,7 +304,7 @@ namespace Comuns
                     DateTime dataAvui;
                     try
                     {
-                        var s = Comuns.Utilitats.HoraInternet();
+                        var s = HoraInternet();
                         dataAvui = s;
                     }
                     catch
@@ -314,7 +314,7 @@ namespace Comuns
 
                     if (dataAvui > data)
                     {
-                        Comuns.Utilitats.GravaVariableRegistre(Microsoft.Win32.Registry.CurrentUser, claureg, "Lic", "2");
+                        GravaVariableRegistre(Registry.CurrentUser, claureg, "Lic", "2");
                         throw new UtilitatsException(Errors.LlicenciaCaducada); //Comuns.Utilitats.Missatge("Llicència caducada", true, false, true);
                         //MediaTypeNames.Application.Exit();
                     }
@@ -459,6 +459,26 @@ namespace Comuns
         }
 
         /// <summary>
+        /// Comprova si ctrl o un del controls que hi penjen, tenen el focus.
+        /// </summary>
+        /// <param name="control"></param>
+        /// <returns></returns>
+        public static bool TeFocus(Control control)
+        {
+            // **** El codi comentat fa el mateix que l'implementat. ****
+            //if(control == null)
+            //    return false;
+            //foreach (Control ctrl in control.Controls)
+            //{
+            //    if (teFocus(ctrl))
+            //        return true;
+            //}
+            //return control.Focused;
+
+            return control != null && (control.Controls.Cast<Control>().Any(TeFocus) || control.Focused);
+        }
+
+        /// <summary>
         /// Comprova si la expresio conté un valor numèric
         /// </summary>
         /// <param name="expresio"></param>
@@ -466,7 +486,7 @@ namespace Comuns
         public static bool EsNumeric(string expresio)
         {
             double retNum;
-            return Double.TryParse(Convert.ToString(expresio), System.Globalization.NumberStyles.Any, System.Globalization.NumberFormatInfo.InvariantInfo, out retNum);
+            return Double.TryParse(Convert.ToString(expresio), NumberStyles.Any, NumberFormatInfo.InvariantInfo, out retNum);
         }
 
 
@@ -655,7 +675,6 @@ namespace Comuns
 
 
         #region Tracta fitxer log
-
 
         /// <summary>
         /// Torna el fitxer log d'una DLL
