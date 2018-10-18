@@ -377,6 +377,16 @@ namespace Comuns
         }
 
 
+        public static Exception ExtreuInnerException(Exception ex)
+        {
+            if (ex.InnerException == null)
+                return ex;
+            else
+                 return ExtreuInnerException(ex.InnerException);
+        }
+
+
+
         /// <summary>
         /// Torna la data del dia anterior laborable.
         /// No té calendari de festius, només te en compte dissabtes i diumenges.
