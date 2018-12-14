@@ -6,6 +6,7 @@ using System.Data.Entity;
 using System.Data.Entity.Core.EntityClient;
 using System.Data.Entity.Validation;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -236,6 +237,19 @@ namespace Comuns
             return localDateTime;
         }
 
+
+        /// <summary>
+        /// Crea la clau per gravar dades en el registre de Windows
+        /// </summary>
+        /// <returns></returns>
+        public static string CreaClauRegistre()
+        {
+            // *** Crea la clau per gravar el registre de Windows. ***
+            var versionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
+            var companyName = versionInfo.CompanyName;
+            var productName = versionInfo.ProductName;
+            return "Software" + Path.DirectorySeparatorChar + companyName + Path.DirectorySeparatorChar + productName;
+        }
 
         /// <summary>
         /// Grava un valor en el registre de Windows.
