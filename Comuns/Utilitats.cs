@@ -393,7 +393,7 @@ namespace Comuns
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        internal static DateTime AnteriorDiaLaborable(DateTime data)
+        public static DateTime AnteriorDiaLaborable(DateTime data)
         {
             DateTime dataAnt = data;
             do
@@ -527,9 +527,23 @@ namespace Comuns
         /// <param name="numero2"></param>
         /// <param name="decimalsTolerància"></param>
         /// <returns></returns>
-        public static bool SonIguals(double numero1, double numero2, int decimalsTolerància = 5)
+        public static bool SonIguals(double numero1, double numero2, uint decimalsTolerància = 5)
         {
             return EsZero(numero1 - numero2, decimalsTolerància);
+        }
+
+
+        /// <summary>
+        /// Comprova si un número és zero eliminant els decimals que queden més enlla de la tolerància.
+        /// </summary>
+        /// <param name="numero">Número a comprovar.</param>
+        /// <param name="decimalsTolerància">Son els decimals que es tintran en compte. Si = 0 només es compara la part entera.</param>
+        /// <returns></returns>
+        public static bool EsZero(double numero, uint decimalsTolerància = 5)
+        {
+            var tolerancia = Math.Pow(10, -decimalsTolerància);
+            var result = Math.Abs(numero) < tolerancia;
+            return result;
         }
 
 
@@ -551,8 +565,7 @@ namespace Comuns
         /// <returns></returns>
         public static DateTime DataFinalDia(DateTime? dataFinal)
         {
-            var dFinal = dataFinal.HasValue ? dataFinal.Value : DateTime.MaxValue;
-            return dFinal == DateTime.MaxValue ? dFinal : dFinal.AddDays(1).AddTicks(-1); // 
+            return dataFinal.HasValue ? (dataFinal.Value.Date + DateTime.MaxValue.TimeOfDay) : DateTime.MaxValue;
         }
 
 
@@ -574,24 +587,6 @@ namespace Comuns
         public static DateTime DataHoraFinalDia(DateTime data)
         {
             return  data < DateTime.MaxValue ? data.Date.AddDays(1).AddTicks(-1) : DateTime.MaxValue;
-        }
-
-
-        /// <summary>
-        /// Comprova si un número és zero eliminant els decimals que queden més enlla de la tolerància.
-        /// </summary>
-        /// <param name="numero">Número a comprovar.</param>
-        /// <param name="decimalsTolerància">Son els decimals que es tintran en compte. Si = 0 només es compara la part entera.</param>
-        /// <returns></returns>
-        public static bool EsZero(double numero, int decimalsTolerància = 5)
-        {
-            if (decimalsTolerància < 0)
-                throw new ArgumentException("Ha de ser iguam o més gran de zero", "decimalsTolerància");
-
-            int multiplicador = (int) Math.Pow(10, decimalsTolerància);
-
-            numero *= multiplicador; // Faig correr la coma decimal a la dreta tantes posicions com "decimalsTolerància". 0.001 -> 0.01
-            return (int)Math.Truncate(numero) == 0;
         }
 
         /// <summary>
