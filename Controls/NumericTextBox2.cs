@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -11,6 +12,7 @@ namespace Controls
     {
         public NumericTextBox2()
         {
+            _CapturaEscape = true;
             _Format = "#.#";
             TextAlign = HorizontalAlignment.Right;
             _PermetNegatius = true;
@@ -27,6 +29,9 @@ namespace Controls
         private static readonly char NegativeSign = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NegativeSign);
 
         private bool vPaste;
+        private bool vEsTab = false; // Indica al control que rep el focus, si s'ha fet Tab.
+        private bool vSelectAll = false; // Indica al event "OnMouseClick" si s'ha de seleccionar el text.
+
 
         public string _Format { get; set; }
 
@@ -80,6 +85,9 @@ namespace Controls
 
         public bool _PermetDecimals { get; set; }
 
+        [Description("Si true, restaura valor inicial al premer ESC.")]
+        public bool _CapturaEscape { get; set; }
+
 
         /// <summary>
         /// Elimina tots els caràctes no numèrics excepte ".,-",
@@ -91,11 +99,45 @@ namespace Controls
             return new String(text.Where(c => char.IsDigit(c) || c == DecimalSeparator || c == '-').ToArray());
         }
 
+
+        /// <summary>
+        /// Troba el cobtrol següent o anterior.
+        /// </summary>
+        /// <param name="seguent">False: Control anterior. True: Control següent.</param>
+        /// <returns></returns>
+        private Control trobaElSeguentControl(bool seguent)
+        {
+            var form = FindForm();
+
+            if (form == null)
+                return null;
+
+            var controlSeguent = form.GetNextControl(this, seguent);
+
+            while (controlSeguent != null && !controlSeguent.TabStop)
+            {
+                controlSeguent = form.GetNextControl(controlSeguent, seguent);
+            }
+            return controlSeguent;
+        }
+
+
+        public override string Text
+        {
+            get { return base.Text; }
+            set
+            {
+                base.Text = value;
+                vTextAnt = value;
+            }
+        }
+
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
 
-            if (e.KeyCode == Keys.Escape && vCapturaEscape)
+            if (e.KeyCode == Keys.Escape && _CapturaEscape)
             {
                 Text = vTextAnt;
 
@@ -107,6 +149,7 @@ namespace Controls
 
             vPaste = ctrlV || shiftIns;
         }
+
 
         protected override void OnKeyUp(KeyEventArgs e)
         {
@@ -130,10 +173,10 @@ namespace Controls
                 vPaste = false;
             }
 
-            if(!Equals(Text, vTextAnt) && ValorChanged != null)
+            if (!Equals(Text, vTextAnt) && ValorChanged != null)
                 ValorChanged(this, e);
         }
-
+      
 
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
@@ -185,31 +228,49 @@ namespace Controls
             base.Text = Valor.ToString(_Format);
         }
 
+        
+        protected override void OnPreviewKeyDown(PreviewKeyDownEventArgs e)
+        {
+            base.OnPreviewKeyDown(e);
+
+            if (e.KeyData == Keys.Tab || e.KeyData == (Keys.Tab | Keys.Shift))
+            {
+                Control tabSeguent = trobaElSeguentControl(e.KeyData == Keys.Tab);
+
+                if (tabSeguent is NumericTextBox2)
+                    // Indico al NumericTextBox2 que rebrà el focus, que sha fet Tab.
+                    ((NumericTextBox2)tabSeguent).vEsTab = true;
+            }
+        }
+
 
         protected override void OnEnter(EventArgs e)
         {
             base.OnEnter(e);
-            Text = vTextAnt ?? ""; // Text no pot ser null perque sinò no es dispara: OnLeave
-            SelectAll();
-        }
 
+            if (!ReadOnly)
+                Text = vTextAnt ?? ""; // Text no pot ser null perque sinò no es dispara: OnLeave
+            
+            vSelectAll = !vEsTab;
 
-        public override string Text
-        {
-            get { return base.Text; }
-            set
+            if (vEsTab)
             {
-                base.Text = value;
-                vTextAnt = value;
+                // S'ha fet Tab en el NumericTextBox2 anterior.
+                SelectAll();
+                vEsTab = false;
             }
         }
 
-        private bool vCapturaEscape = true;
-        [Description("Si true, restaura valor inicial al premer ESC.")]
-        public bool _CapturaEscape
+
+        protected override void OnMouseClick(MouseEventArgs e)
         {
-            get { return vCapturaEscape; }
-            set { vCapturaEscape = value; }
+            base.OnMouseClick(e);
+
+            if (vSelectAll)
+            {
+                SelectAll();
+                vSelectAll = false;
+            }
         }
     }
 }
