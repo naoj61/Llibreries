@@ -29,8 +29,13 @@ namespace Controls
         private static readonly char NegativeSign = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NegativeSign);
 
         private bool vPaste;
-        private bool vEsTab = false; // Indica al control que rep el focus, si s'ha fet Tab.
-        private bool vSelectAll = false; // Indica al event "OnMouseClick" si s'ha de seleccionar el text.
+        
+        /// <summary>
+        /// Utilitzo la variable per saber quan s'ha de seleccionar tot el text al fer clic. 
+        /// Aixó és perquè encara que faci SelectAll en Enter si enfoco el control amb un clic se deselecciona el text.
+        /// En el mètode Enter se li dona un valor al moure el mous s'anirà restant, mentre sigui > 0 si es fa clic se seleccionarà tot el text.
+        /// </summary>
+        private int vFerSelectAll;
 
 
         public string _Format { get; set; }
@@ -98,29 +103,7 @@ namespace Controls
         {
             return new String(text.Where(c => char.IsDigit(c) || c == DecimalSeparator || c == '-').ToArray());
         }
-
-
-        /// <summary>
-        /// Troba el cobtrol següent o anterior.
-        /// </summary>
-        /// <param name="seguent">False: Control anterior. True: Control següent.</param>
-        /// <returns></returns>
-        private Control trobaElSeguentControl(bool seguent)
-        {
-            var form = FindForm();
-
-            if (form == null)
-                return null;
-
-            var controlSeguent = form.GetNextControl(this, seguent);
-
-            while (controlSeguent != null && !controlSeguent.TabStop)
-            {
-                controlSeguent = form.GetNextControl(controlSeguent, seguent);
-            }
-            return controlSeguent;
-        }
-
+        
 
         public override string Text
         {
@@ -163,21 +146,6 @@ namespace Controls
         }
 
 
-        protected override void OnTextChanged(EventArgs e)
-        {
-            base.OnTextChanged(e);
-
-            if (vPaste)
-            {
-                Text = EliminaCaracterNoNumerics(base.Text);
-                vPaste = false;
-            }
-
-            if (!Equals(Text, vTextAnt) && ValorChanged != null)
-                ValorChanged(this, e);
-        }
-      
-
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
             base.OnKeyPress(e);
@@ -219,6 +187,21 @@ namespace Controls
         }
 
 
+        protected override void OnTextChanged(EventArgs e)
+        {
+            base.OnTextChanged(e);
+
+            if (vPaste)
+            {
+                Text = EliminaCaracterNoNumerics(base.Text);
+                vPaste = false;
+            }
+
+            if (!Equals(Text, vTextAnt) && ValorChanged != null)
+                ValorChanged(this, e);
+        }
+        
+
         protected override void OnLeave(EventArgs e)
         {
             base.OnLeave(e);
@@ -226,21 +209,6 @@ namespace Controls
             Text = base.Text;
 
             base.Text = Valor.ToString(_Format);
-        }
-
-        
-        protected override void OnPreviewKeyDown(PreviewKeyDownEventArgs e)
-        {
-            base.OnPreviewKeyDown(e);
-
-            if (e.KeyData == Keys.Tab || e.KeyData == (Keys.Tab | Keys.Shift))
-            {
-                Control tabSeguent = trobaElSeguentControl(e.KeyData == Keys.Tab);
-
-                if (tabSeguent is NumericTextBox2)
-                    // Indico al NumericTextBox2 que rebrà el focus, que sha fet Tab.
-                    ((NumericTextBox2)tabSeguent).vEsTab = true;
-            }
         }
 
 
@@ -251,26 +219,26 @@ namespace Controls
             if (!ReadOnly)
                 Text = vTextAnt ?? ""; // Text no pot ser null perque sinò no es dispara: OnLeave
             
-            vSelectAll = !vEsTab;
-
-            if (vEsTab)
-            {
-                // S'ha fet Tab en el NumericTextBox2 anterior.
-                SelectAll();
-                vEsTab = false;
-            }
+            //vFerSelectAll = ReadOnly ? 5 : 0;
+            vFerSelectAll = 5;
         }
-
 
         protected override void OnMouseClick(MouseEventArgs e)
         {
             base.OnMouseClick(e);
 
-            if (vSelectAll)
+            if (vFerSelectAll > 0)
             {
                 SelectAll();
-                vSelectAll = false;
+                vFerSelectAll = 0;
             }
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+           
+            vFerSelectAll--;
         }
     }
 }
