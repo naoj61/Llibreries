@@ -127,21 +127,32 @@ namespace Controls
                 e.SuppressKeyPress = true;
             }
 
-            bool ctrlV = e.Modifiers == Keys.Control && e.KeyCode == Keys.V;
-            bool shiftIns = e.Modifiers == Keys.Shift && e.KeyCode == Keys.Insert;
-
-            vPaste = ctrlV || shiftIns;
+            if (e.KeyData == (Keys.Insert | Keys.Shift))
+            {
+                // Ha d'anar aquí perquè Shift+Insert fa el paste automàticament i es dispara "OnTextChanged" abans de OnKeyUp".
+                vPaste = true;
+            }
         }
-
 
         protected override void OnKeyUp(KeyEventArgs e)
         {
             base.OnKeyUp(e);
 
-            if (vPaste)
+            // Ctrl+X Cut. (Shift+Supr ja ho fa sol)
+            if (e.KeyData == (Keys.X | Keys.Control))
             {
+                Cut();
+            }
+            // Ctrl+C Copy. (Ctrl+Insert ja ho fa sol)
+            if (e.KeyData == (Keys.C | Keys.Control))
+            {
+                Copy();
+            }
+            // Ctrl+V Paste. (Shift+Insert ja ho fa sol)
+            if (e.KeyData == (Keys.V | Keys.Control))
+            {
+                vPaste = true;
                 Paste();
-                vPaste = false;
             }
         }
 
@@ -157,11 +168,11 @@ namespace Controls
             {
                 // Digits are OK
             }
-            else if (e.KeyChar == DecimalSeparator && Text.IndexOf(DecimalSeparator) == -1 && _PermetDecimals)
+            else if (e.KeyChar == DecimalSeparator && _PermetDecimals && Text.IndexOf(DecimalSeparator) == -1)
             {
                 // Decimal separator is OK
             }
-            else if (e.KeyChar.Equals(NegativeSign) && Text.IndexOf(NegativeSign) == -1 && _PermetNegatius)
+            else if (e.KeyChar.Equals(NegativeSign) && _PermetNegatius && Text.IndexOf(NegativeSign) == -1)
             {
                 // Negative sign is OK
 
@@ -170,7 +181,6 @@ namespace Controls
                 Text = NegativeSign + Text;
                 Select(pos, 0);
                 e.Handled = true;
-                return;
             }
             else if (e.KeyChar == '\b')
             {
