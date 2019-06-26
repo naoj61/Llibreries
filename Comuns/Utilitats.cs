@@ -579,7 +579,7 @@ namespace Comuns
         /// <returns></returns>
         public static DateTime DataFinalDia(DateTime? dataFinal)
         {
-            return dataFinal.HasValue ? (dataFinal.Value.Date + DateTime.MaxValue.TimeOfDay) : DateTime.MaxValue;
+            return dataFinal.HasValue ? DataHoraFinalDia(dataFinal.Value) : DateTime.MaxValue;
         }
 
 
@@ -600,7 +600,8 @@ namespace Comuns
         /// <returns></returns>
         public static DateTime DataHoraFinalDia(DateTime data)
         {
-            return  data < DateTime.MaxValue ? data.Date.AddDays(1).AddTicks(-1) : DateTime.MaxValue;
+            // return  data < DateTime.MaxValue ? data.Date.AddDays(1).AddTicks(-1) : DateTime.MaxValue;
+            return data.Date + DateTime.MaxValue.TimeOfDay;
         }
 
         /// <summary>
