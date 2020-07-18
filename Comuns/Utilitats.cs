@@ -543,7 +543,22 @@ namespace Comuns
         /// <returns></returns>
         public static bool SonIguals(double numero1, double numero2, uint decimalsTolerància = 5)
         {
-            return EsZero(numero1 - numero2, decimalsTolerància);
+            return EsZero(Math.Round(numero1 - numero2, (int)decimalsTolerància), decimalsTolerància);
+        }
+
+        /// <summary>
+        /// Compara numero1 i numero2 eliminant la tolerància.
+        /// </summary>
+        /// <param name="numero1"></param>
+        /// <param name="numero2"></param>
+        /// <param name="decimalsTolerància"></param>
+        /// <returns>0 si son iguals. -1 si numero1 és més petit. 1 si numero1 és més gran.</returns>
+        public static int ComparaNumeros(double numero1, double numero2, uint decimalsTolerància = 5)
+        {
+            if (SonIguals(numero1, numero2, decimalsTolerància))
+                return 0;
+
+            return numero1.CompareTo(numero2);
         }
 
 
