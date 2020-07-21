@@ -587,14 +587,29 @@ namespace Comuns
             return data.Date + (hora.HasValue ? hora.Value : DateTime.Now.TimeOfDay);
         }
 
+
         /// <summary>
-        /// Poso la hora al final del dia
+        /// Si dataFinal és d'avui i la hora és 0 poso hora actual, si és null torno MaxValue, sino no faig res
         /// </summary>
         /// <param name="dataFinal">Si null, torno DateTime.MaxValue</param>
         /// <returns></returns>
-        public static DateTime DataFinalDia(DateTime? dataFinal)
+        public static DateTime PosoHora(DateTime? dataFinal)
         {
-            return dataFinal.HasValue ? DataHoraFinalDia(dataFinal.Value) : DateTime.MaxValue;
+            DateTime data;
+
+            if (!dataFinal.HasValue)
+                return DateTime.MaxValue;
+
+            if (dataFinal.Value.Date == DateTime.Today)
+            {
+                // Data d'avui si hora és 0 poso l'hora actual, sino conservo la que té.
+                data = dataFinal.Value.Second > 0 ? dataFinal.Value : DateTime.Now;
+            }
+            else
+                // Data no és d'avui, poso hora final dia.
+                data = DataHoraFinalDia(dataFinal.Value);
+
+            return data;
         }
 
 
