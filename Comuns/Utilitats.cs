@@ -54,6 +54,11 @@ namespace Comuns
         }
 
 
+        public static FileInfo _FitxerLog
+        {
+            get { return new FileInfo(ConfigurationManager.AppSettings["FitxerLog"]); }
+        }
+
         public static DateTime DataBd(DbContext dbContext)
         {
             return dbContext.Database.SqlQuery<DateTime>("Select GetDate()").First();
@@ -543,7 +548,7 @@ namespace Comuns
         /// <returns></returns>
         public static bool SonIguals(double numero1, double numero2, uint decimalsTolerància = 5)
         {
-            return EsZero(Math.Round(numero1 - numero2, (int)decimalsTolerància), decimalsTolerància);
+            return EsZero(numero1 - numero2, decimalsTolerància);
         }
 
         /// <summary>
@@ -555,10 +560,7 @@ namespace Comuns
         /// <returns>0 si son iguals. -1 si numero1 és més petit. 1 si numero1 és més gran.</returns>
         public static int ComparaNumeros(double numero1, double numero2, uint decimalsTolerància = 5)
         {
-            if (SonIguals(numero1, numero2, decimalsTolerància))
-                return 0;
-
-            return numero1.CompareTo(numero2);
+            return SonIguals(numero1, numero2, decimalsTolerància) ? 0 : numero1.CompareTo(numero2);
         }
 
 
@@ -763,7 +765,7 @@ namespace Comuns
 
             try
             {
-                fitxerLog = new FileInfo(ConfigurationManager.AppSettings["FitxerLog"]);
+                fitxerLog = _FitxerLog;
             }
             catch
             {
@@ -800,14 +802,26 @@ namespace Comuns
         /// Escriu en el fitxer log sense mostrar cap finestra al usuari.
         /// </summary>
         /// <param name="ex"></param>
-        public static void EscriuLog(Exception ex)
+        /// <param name="mostraFinestra">True mostrara la finestra amb l'error.</param>
+        /// <param name="preguntaPerObrirLog">True donarà l'opció d'obrir el log.</param>
+        public static FileInfo EscriuLog(Exception ex, bool mostraFinestra = false, bool preguntaPerObrirLog = false)
         {
-            EscriuLog(ex, null, null, null);
+            string missatge = mostraFinestra ? ex.Message : null;
+            var log = EscriuLog(ex, missatgeFinestra: missatge, fitxerLog: _FitxerLog, versio: null);
+
+            if (preguntaPerObrirLog && log != null && log.Exists)
+            {
+                if (MessageBox.Show("Vols obrir fitxer log?", "Avís", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    Process.Start(log.FullName);
+                }
+            }
+            return log;
         }
 
-        public static void EscriuLog(string missatge)
+        public static FileInfo EscriuLog(string missatge)
         {
-            EscriuLog(missatge, null);
+            return EscriuLog(missatge, fitxerLog: _FitxerLog);
         }
 
         /// <summary>
@@ -820,9 +834,11 @@ namespace Comuns
         /// <param name="mostraData"></param>
         /// <param name="mostraTraça"></param>
         /// <param name="esInnerException"></param>
-        public static void EscriuLog(Exception ex, string missatgeFinestra, FileInfo fitxerLog, Version versio, bool mostraData = true, bool mostraTraça = false, bool esInnerException = false)
+        /// <returns></returns>
+        public static FileInfo EscriuLog(Exception ex, string missatgeFinestra, FileInfo fitxerLog, Version versio, bool mostraData = true, bool mostraTraça = false, bool esInnerException = false)
         {
             string missatge = String.Empty;
+            FileInfo log = fitxerLog;
 
             if (esInnerException)
                 missatge += "InnerException: ";
@@ -857,14 +873,16 @@ namespace Comuns
                     }
                 }
 
-                EscriuLog(missatge, missFin, fitxerLog, mostraData, versio);
+                log = EscriuLog(missatge, missFin, fitxerLog, mostraData, versio);
             }
 
             else
             {
                 // Crida recursiva
-                EscriuLog(ex.InnerException, missatgeFinestra, fitxerLog, versio, false, mostraTraça, true);
+                log = EscriuLog(ex.InnerException, missatgeFinestra, fitxerLog, versio, false, mostraTraça, true);
             }
+
+            return log;
         }
 
 
@@ -894,9 +912,9 @@ namespace Comuns
         /// <param name="text">Text que s'escriurà.</param>
         /// <param name="fitxerLog"></param>
         /// <param name="versio"></param>
-        public static void EscriuLog(string text, FileInfo fitxerLog)
+        public static FileInfo EscriuLog(string text, FileInfo fitxerLog)
         {
-            EscriuLog(text, null, fitxerLog, false, null);
+            return EscriuLog(text, null, fitxerLog, false, null);
         }
 
         /// <summary>
@@ -907,7 +925,7 @@ namespace Comuns
         /// <param name="fitxerLog">Si null, només mostra finestra.</param>
         /// <param name="mostraData"></param>
         /// <param name="versio"></param>
-        public static void EscriuLog(string text, string missatgeFinestra, FileInfo fitxerLog, bool mostraData, Version versio)
+        public static FileInfo EscriuLog(string text, string missatgeFinestra, FileInfo fitxerLog, bool mostraData, Version versio)
         {
             if (fitxerLog != null)
             {
@@ -931,6 +949,7 @@ namespace Comuns
                 if (missatgeFinestra != null)
                     MessageBox.Show(missatgeFinestra, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            return fitxerLog;
         }
 
         #endregion
