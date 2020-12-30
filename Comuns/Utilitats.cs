@@ -637,6 +637,15 @@ namespace Comuns
         }
 
         /// <summary>
+        /// Torna la data hora de l'últim milisegon de l'any.
+        /// </summary>
+        /// <returns></returns>
+        public static DateTime DataHoraFinalAny(int any)
+        {
+            return DataHoraFinalDia(new DateTime(any, 12, 31));
+        }
+
+        /// <summary>
         /// Comprova si s1 conté s2. Elimina espais de s2. No té en compte majúscules per defecte.
         /// </summary>
         /// <param name="s1"></param>
