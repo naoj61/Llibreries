@@ -56,7 +56,7 @@ namespace Comuns
 
         public static FileInfo _FitxerLog
         {
-            get { return new FileInfo(ConfigurationManager.AppSettings["FitxerLog"]); }
+            get { return new FileInfo(ConverteixVariablesEntornDeCadena(ConfigurationManager.AppSettings["FitxerLog"])); }
         }
 
         public static DateTime DataBd(DbContext dbContext)
@@ -763,12 +763,20 @@ namespace Comuns
             return fitxerLog;
         }
 
+        /// <summary>
+        /// Torna el fitxer log de Ngloba. 
+        /// </summary>
+        /// <returns></returns>
+        public static FileInfo LlegeixFitxerLog()
+        {
+            return LlegeixFitxerLog(NomProcesActual() + ".log");
+        }
 
         /// <summary>
         /// Torna el fitxer log del fitxer en execució.
         /// </summary>
         /// <returns></returns>
-        public static FileInfo LlegeixFitxerLog()
+        public static FileInfo LlegeixFitxerLog(string nomFitxer)
         {
             FileInfo fitxerLog = null;
 
@@ -783,7 +791,7 @@ namespace Comuns
             finally
             {
                 if (fitxerLog == null || fitxerLog.Directory == null || !fitxerLog.Directory.Exists)
-                    fitxerLog = new FileInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Ngloba.log"));
+                    fitxerLog = new FileInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), nomFitxer));
             }
 
             return fitxerLog;
@@ -967,6 +975,86 @@ namespace Comuns
         public static DateTime ArrodoneixoDataASegons(DateTime dataHora)
         {
             return new DateTime(dataHora.Year, dataHora.Month, dataHora.Day, dataHora.Hour, dataHora.Minute, dataHora.Second, 0);
+        }
+
+        /// <summary>
+        /// Comprova "nomInstancia" ja està en marxa.
+        /// </summary>
+        /// <param name="nomInstancia"></param>
+        /// <returns></returns>
+        public static bool ComprovaSiHiHaUnaInstanciaEnMarxa(string nomInstancia)
+        {
+            bool noHiHaInstanciaEnMarxa;
+            using (Mutex mutex = new Mutex(true, "Inversions", out noHiHaInstanciaEnMarxa)) { }
+            return !noHiHaInstanciaEnMarxa;
+        }
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+
+        /// <summary>
+        /// Si la mateixa aplicació ja està en marxa l'enfoca.
+        /// </summary>
+        /// <param name="current"></param>
+        public static void ActivaInstanciaEnMarxa(Process current)
+        {
+            foreach (Process process in Process.GetProcessesByName(current.ProcessName))
+            {
+                if (process.Id != current.Id)
+                {
+                    SetForegroundWindow(process.MainWindowHandle);
+                    break;
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Torna el nom del procés actual, si executo des de Visual Studio, elimino ".VSHOST".
+        /// </summary>
+        /// <returns></returns>
+        public static string NomProcesActual()
+        {
+            try
+            {
+                var nomProces = Process.GetCurrentProcess().ProcessName;
+                return nomProces.Replace(".VSHOST", "");
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+
+        /// <summary>
+        /// Si en text hi ha variables d'entorn (entre '%') les converteix al seu valor real.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static string ConverteixVariablesEntornDeCadena(string text)
+        {
+            if (text == null)
+                return null;
+
+            var array = text.Split('%');
+
+            if (array.Length == 1)
+                return array[0];
+
+            string resultat = "";
+            if (array.Length > 1)
+            {
+                bool esVariableEntorn = false;
+                foreach (var elem in array)
+                {
+                    resultat += esVariableEntorn ? Environment.GetEnvironmentVariable(elem) : elem;
+                    esVariableEntorn = !esVariableEntorn;
+                }
+            }
+            return resultat;
         }
 
         #endregion *** Utilitats2 ***
