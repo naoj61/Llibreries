@@ -374,6 +374,49 @@ namespace Comuns
             return Path.GetDirectoryName(dllType.Assembly.Location);
         }
 
+        /// <summary>
+        /// Torna el directori on està l'assembly.
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <returns></returns>
+        public static string DirectoriAssembly(Assembly assembly)
+        {
+            return Path.GetDirectoryName(assembly.Location);
+        }
+
+        /// <summary>
+        /// Assigna directoriBd a la variable de context: DataDirectory
+        /// </summary>
+        /// <param name="directoriBd">Directori on està la base de dades</param>
+        /// <param name="nomBd"></param>
+        public static void AssignaDataDirectory(string directoriBd = null, string nomBd = null)
+        {
+            if (!Directory.Exists(directoriBd) || (!String.IsNullOrEmpty(nomBd) && !File.Exists(Path.Combine(directoriBd, nomBd))))
+                // Llegeixo el directori de la Bd de la variable "DirBd" de "app.config".
+                directoriBd = ConverteixVariablesEntornDeCadena(Utilitats.LlegeixConfig("DirBd"));
+
+            if (!Directory.Exists(directoriBd) || (!String.IsNullOrEmpty(nomBd) && !File.Exists(Path.Combine(directoriBd, nomBd))))
+            {
+                // Llegeixo el directori de la Bd a partir del de l'executable.
+                directoriBd = DirectoriAssembly(Assembly.GetExecutingAssembly());
+#if DEBUG
+                directoriBd = Directory.GetParent(directoriBd).FullName; // Directori anterior.
+                directoriBd = Directory.GetParent(directoriBd).FullName; // Directori anterior.
+#endif
+                directoriBd = Path.Combine(directoriBd, "BD");
+            }
+
+            if (!Directory.Exists(directoriBd))
+                throw new ArgumentException(String.Format("El directori de la Bd: \"{0}\" no existeix.", directoriBd));
+
+            if (!String.IsNullOrEmpty(nomBd) && !File.Exists(Path.Combine(directoriBd, nomBd)))
+                throw new ArgumentException(String.Format("La Bd: \"{0}\" no existeix en el directori: \"{1}\".", nomBd, directoriBd));
+
+            // Informa la variable |DataDirectory|, s'utilitza en App.config.
+            // ***** A partir d'aquí, ja es pot accedir a la Bd *****
+            AppDomain.CurrentDomain.SetData("DataDirectory", directoriBd);
+        }
+
 
         /// <summary>
         /// Substitueix DesignMode que no funciona en subcontrols.
@@ -958,7 +1001,7 @@ namespace Comuns
                 }
 
                 if (missatgeFinestra != null)
-                    MessageBox.Show(missatgeFinestra + "\nConsultar el fichero: " + fitxerLog.FullName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(missatgeFinestra + "\n\nConsultar el fitxer: " + fitxerLog.FullName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
