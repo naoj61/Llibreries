@@ -590,7 +590,7 @@ namespace Comuns
         /// <param name="numero2"></param>
         /// <param name="decimalsTolerància"></param>
         /// <returns></returns>
-        public static bool SonIguals(double numero1, double numero2, uint decimalsTolerància = 5)
+        public static bool SonIguals(double numero1, double numero2, uint decimalsTolerància = 4)
         {
             return EsZero(numero1 - numero2, decimalsTolerància);
         }
@@ -602,7 +602,7 @@ namespace Comuns
         /// <param name="numero2"></param>
         /// <param name="decimalsTolerància"></param>
         /// <returns>0 si son iguals. -1 si numero1 és més petit. 1 si numero1 és més gran.</returns>
-        public static int ComparaNumeros(double numero1, double numero2, uint decimalsTolerància = 5)
+        public static int ComparaNumeros(double numero1, double numero2, uint decimalsTolerància = 4)
         {
             return SonIguals(numero1, numero2, decimalsTolerància) ? 0 : numero1.CompareTo(numero2);
         }
@@ -614,7 +614,7 @@ namespace Comuns
         /// <param name="numero">Número a comprovar.</param>
         /// <param name="decimalsTolerància">Son els decimals que es tintran en compte. Si = 0 només es compara la part entera.</param>
         /// <returns></returns>
-        public static bool EsZero(double numero, uint decimalsTolerància = 5)
+        public static bool EsZero(double numero, uint decimalsTolerància = 4)
         {
             var tolerancia = Math.Pow(10, -decimalsTolerància);
             var result = Math.Abs(numero) < tolerancia;
