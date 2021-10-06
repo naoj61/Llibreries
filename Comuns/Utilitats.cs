@@ -57,7 +57,17 @@ namespace Comuns
 
         public static FileInfo _FitxerLog
         {
-            get { return new FileInfo(ConverteixVariablesEntornDeCadena(ConfigurationManager.AppSettings["FitxerLog"])); }
+            get { 
+                var fitxer = new FileInfo(ConverteixVariablesEntornDeCadena(ConfigurationManager.AppSettings["FitxerLog"]));
+
+                if(!fitxer.Directory.Exists)
+                {
+                    var xx = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), fitxer.Name);
+                    fitxer = new FileInfo(xx);
+                }
+
+                return fitxer;
+            }
         }
 
         public static DateTime DataBd(DbContext dbContext)
