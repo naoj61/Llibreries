@@ -78,9 +78,6 @@ namespace Controls
                 // Deso el valor en base.Text, no ho faig a través de "Text" perquè he de dona diferents valors a 'base.Text' i 'vTextAnt'.
                 base.Text = value.ToString(_Format);
                 vTextAnt = value.ToString(CultureInfo.CurrentCulture);
-
-                base.Text = value.ToString(_Format);
-                vTextAnt = value.ToString(CultureInfo.CurrentCulture);
             }
         }
 
@@ -122,8 +119,11 @@ namespace Controls
 
             if (e.KeyCode == Keys.Escape && _CapturaEscape)
             {
-                Text = vTextAnt;
-
+                if (Modified)
+                {
+                    Undo(); //Text = vTextAnt;
+                    Modified = false;
+                }
                 e.SuppressKeyPress = true;
             }
 
