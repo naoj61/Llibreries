@@ -124,7 +124,7 @@ namespace Controls
                     Undo(); //Text = vTextAnt;
                     Modified = false;
                 }
-                e.SuppressKeyPress = true;
+                //e.SuppressKeyPress = true;
             }
 
             if (e.KeyData == (Keys.Insert | Keys.Shift))
