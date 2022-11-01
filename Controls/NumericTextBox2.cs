@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -18,6 +19,12 @@ namespace Controls
             _PermetNegatius = true;
             _PermetDecimals = true;
             _PermetEspais = false;
+
+            // *** Per alguna raó, si no cambio primer el BackColor no es canvia el ForeColor si el control està readOnly o Disabled.
+            var xx = BackColor;
+            BackColor = Color.White;
+            BackColor = xx;
+
         }
 
         public event EventHandler ValorChanged;
@@ -39,6 +46,8 @@ namespace Controls
 
 
         public string _Format { get; set; }
+        
+        public bool _NegatiusEnVermell { get; set; }
 
         [Browsable(false)]
         public int _IntValue
@@ -70,6 +79,7 @@ namespace Controls
             }
         }
 
+        private Color? vForeCol;
         public double Valor
         {
             get { return _DoubleValue; }
@@ -78,6 +88,15 @@ namespace Controls
                 // Deso el valor en base.Text, no ho faig a través de "Text" perquè he de dona diferents valors a 'base.Text' i 'vTextAnt'.
                 base.Text = value.ToString(_Format);
                 vTextAnt = value.ToString(CultureInfo.CurrentCulture);
+                if (_NegatiusEnVermell && value < 0)
+                {
+                    vForeCol = ForeColor;
+                    ForeColor = Color.Red;
+                }
+                else if(vForeCol.HasValue)
+                {
+                    ForeColor = vForeCol.Value;
+                }
             }
         }
 
@@ -249,6 +268,13 @@ namespace Controls
             base.OnMouseMove(e);
            
             vFerSelectAll--;
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.ResumeLayout(false);
+
         }
     }
 }

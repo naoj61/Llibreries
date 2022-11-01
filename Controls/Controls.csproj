@@ -101,6 +101,9 @@
     <EmbeddedResource Include="FileBrowser2.resx">
       <DependentUpon>FileBrowser2.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="NumericTextBox2.resx">
+      <DependentUpon>NumericTextBox2.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
