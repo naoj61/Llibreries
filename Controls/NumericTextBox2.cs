@@ -21,9 +21,10 @@ namespace Controls
             _PermetEspais = false;
 
             // *** Per alguna raó, si no cambio primer el BackColor no es canvia el ForeColor si el control està readOnly o Disabled.
-            var xx = BackColor;
-            BackColor = Color.White;
-            BackColor = xx;
+            //var xx = BackColor;
+            //BackColor = Color.Blue;
+            //BackColor = xx;
+            //BackColor = BackColor;
 
         }
 
@@ -79,6 +80,8 @@ namespace Controls
             }
         }
 
+
+
         private Color? vForeCol;
         public double Valor
         {
@@ -88,14 +91,21 @@ namespace Controls
                 // Deso el valor en base.Text, no ho faig a través de "Text" perquè he de dona diferents valors a 'base.Text' i 'vTextAnt'.
                 base.Text = value.ToString(_Format);
                 vTextAnt = value.ToString(CultureInfo.CurrentCulture);
-                if (_NegatiusEnVermell && value < 0)
+
+                if (_NegatiusEnVermell)
                 {
-                    vForeCol = ForeColor;
-                    ForeColor = Color.Red;
-                }
-                else if(vForeCol.HasValue)
-                {
-                    ForeColor = vForeCol.Value;
+                    if (value < 0)
+                    {
+                        if (ForeColor != Color.Red)
+                            // Si el valor anterior ja era negatiu, es desaria com ForeColor el vermell.
+                            vForeCol = ForeColor;
+
+                        ForeColor = Color.Red;
+                    }
+                    else if (vForeCol.HasValue)
+                    {
+                        ForeColor = vForeCol.Value;
+                    } 
                 }
             }
         }
