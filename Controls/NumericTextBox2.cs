@@ -83,14 +83,21 @@ namespace Controls
 
 
         private Color? vForeCol;
-        public double Valor
+
+        public double ValorDouble
         {
             get { return _DoubleValue; }
+            set { Valor = (decimal) value;  }
+        }
+
+        public decimal Valor
+        {
+            get { return _DecimalValue; }
             set
             {
                 // Deso el valor en base.Text, no ho faig a través de "Text" perquè he de dona diferents valors a 'base.Text' i 'vTextAnt'.
                 base.Text = value.ToString(_Format);
-                vTextAnt = value.ToString("0.00###", CultureInfo.CurrentCulture);
+                vTextAnt = value.ToString("0.00########", CultureInfo.CurrentCulture);
 
                 if (_NegatiusEnVermell)
                 {

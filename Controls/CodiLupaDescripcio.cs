@@ -169,7 +169,7 @@ namespace Controls
             vCodiTextAct = tbCodiText.Text;
         }
 
-        private double vCodiNumericAct = 0;
+        private decimal vCodiNumericAct = 0;
         private void tbCodiNumeric_Enter(object sender, EventArgs e)
         {
             vCodiNumericAct = tbCodiNumeric.Valor;
@@ -329,9 +329,9 @@ namespace Controls
             tbCodiText.Visible = false;
         }
 
-        public double? _CodiNumeric
+        public decimal? _CodiNumeric
         {
-            get { return tbCodiNumeric._DoubleValue; }
+            get { return tbCodiNumeric._DecimalValue; }
             set { tbCodiNumeric.Valor = value.HasValue ? value.Value : 0; }
         }
 
@@ -354,7 +354,7 @@ namespace Controls
             {
                 try
                 {
-                    tbCodiNumeric.Valor = Convert.ToDouble(value);
+                    tbCodiNumeric.Valor = Convert.ToDecimal(value);
                 }
                 catch (Exception)
                 {
