@@ -593,6 +593,19 @@ namespace Comuns
             return String.Equals(s1, s2, stringComp);
         }
 
+
+        /// <summary>
+        /// Comprova si els números son iguals eliminant els decimals que queden més enlla de la tolerància.
+        /// Aquesta funció no fa falta pels decimals, és per que a Inversions he canviat doubles per decimals i hauria de canviar molt codi.
+        /// </summary>
+        /// <param name="numero1"></param>
+        /// <param name="numero2"></param>
+        /// <returns></returns>
+        public static bool SonIguals(decimal numero1, decimal numero2)
+        {
+            return numero1 == numero2;
+        }
+
         /// <summary>
         /// Comprova si els números son iguals eliminant els decimals que queden més enlla de la tolerància.
         /// </summary>
@@ -605,6 +618,19 @@ namespace Comuns
             return EsZero(numero1 - numero2, decimalsTolerància);
         }
 
+
+        /// <summary>
+        /// Compara numero1 i numero2 eliminant la tolerància.
+        /// Aquesta funció no fa falta pels decimals, és per que a Inversions he canviat doubles per decimals i hauria de canviar molt codi.
+        /// </summary>
+        /// <param name="numero1"></param>
+        /// <param name="numero2"></param>
+        /// <returns></returns>
+        public static int ComparaNumeros(decimal numero1, decimal numero2)
+        {
+            return numero1.CompareTo(numero2);
+        }
+
         /// <summary>
         /// Compara numero1 i numero2 eliminant la tolerància.
         /// </summary>
@@ -615,6 +641,18 @@ namespace Comuns
         public static int ComparaNumeros(double numero1, double numero2, uint decimalsTolerància = 4)
         {
             return SonIguals(numero1, numero2, decimalsTolerància) ? 0 : numero1.CompareTo(numero2);
+        }
+
+
+        /// <summary>
+        /// Comprova si un número és zero eliminant els decimals que queden més enlla de la tolerància.
+        /// Aquesta funció no fa falta pels decimals, és per que a Inversions he canviat doubles per decimals i hauria de canviar molt codi.
+        /// </summary>
+        /// <param name="numero"></param>
+        /// <returns></returns>
+        public static bool EsZero(decimal numero)
+        {
+            return numero == 0;
         }
 
 
