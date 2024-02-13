@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace Comuns
+namespace Controls
 {
     public class NumericTextBoxColumn : DataGridViewTextBoxColumn
     {
