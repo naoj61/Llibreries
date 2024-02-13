@@ -41,9 +41,9 @@ namespace Controls
 
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)
         {
-            DataGridViewCell xx = this[e.ColumnIndex, e.RowIndex];
+            DataGridViewCell cella = this[e.ColumnIndex, e.RowIndex];
 
-            if (this.Columns[e.ColumnIndex] is NumericTextBoxColumn && xx.ValueType.IsNumericType() && e.Exception is FormatException)
+            if (e.Exception is FormatException && cella.OwningColumn is NumericTextBoxColumn && cella.ValueType.IsNumericType())
             {
                 // Aquí pots gestionar l'error de dades com vulguis
                 MessageBox.Show("Error de dades: " + e.Exception.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
