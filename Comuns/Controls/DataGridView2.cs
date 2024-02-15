@@ -43,7 +43,7 @@ namespace Controls
         {
             DataGridViewCell cella = this[e.ColumnIndex, e.RowIndex];
 
-            if (e.Exception is FormatException && cella.OwningColumn is NumericTextBoxColumn && cella.ValueType.IsNumericType())
+            if (e.Exception is FormatException && cella.OwningColumn is NumericTextBoxColumn && cella.ValueType.EsTipusNumeric())
             {
                 // Aquí pots gestionar l'error de dades com vulguis
                 MessageBox.Show("Error de dades: " + e.Exception.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -94,7 +94,7 @@ namespace Controls
     /// </summary>
     public static class TypeExtensions
     {
-        public static bool IsNumericType(this Type type)
+        public static bool EsTipusNumeric(this Type type)
         {
             if (type == null)
                 return false;

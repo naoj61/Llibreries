@@ -46,10 +46,61 @@
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controls\CodiLupaDescripcio.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\CodiLupaDescripcio.Designer.cs">
+      <DependentUpon>CodiLupaDescripcio.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ComboBox2.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\ComboBox2.Designer.cs">
+      <DependentUpon>ComboBox2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DataGridView2.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\DataGridView2.Designer.cs">
+      <DependentUpon>DataGridView2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DateTimePickerNullable.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\Etiqueta1.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\Etiqueta1.Designer.cs">
+      <DependentUpon>Etiqueta1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\FileBrowser.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\FileBrowser.Designer.cs">
+      <DependentUpon>FileBrowser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\FileBrowser2.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\FileBrowser2.Designer.cs">
+      <DependentUpon>FileBrowser2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ICodiLupaDesc.cs" />
+    <Compile Include="Controls\IValorControlRestaurable.cs" />
+    <Compile Include="Controls\NumericTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NumericTextBox2.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NumericTextBoxColumn.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -64,6 +115,24 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Controls\CodiLupaDescripcio.resx">
+      <DependentUpon>CodiLupaDescripcio.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\DataGridView2.resx">
+      <DependentUpon>DataGridView2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\Etiqueta1.resx">
+      <DependentUpon>Etiqueta1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\FileBrowser.resx">
+      <DependentUpon>FileBrowser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\FileBrowser2.resx">
+      <DependentUpon>FileBrowser2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\NumericTextBox2.resx">
+      <DependentUpon>NumericTextBox2.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
