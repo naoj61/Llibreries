@@ -106,8 +106,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="RunLength.cs" />
-    <Compile Include="Utilitats.cs" />
+    <Compile Include="Utilitats\RunLength.cs" />
+    <Compile Include="Utilitats\Utilitats.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
