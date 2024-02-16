@@ -31,7 +31,8 @@ namespace Controls
         public event EventHandler ValorChanged;
 
         // Desa el format original de Text, abans d'aplicar el format.
-        private string vTextAnt = null;
+        private string vTextOrig; // És el valor asignat abans de editarlo
+        private string vTextAnt; // És el valor que té abans de cada pulsació mentre s'edita.
         private static readonly char DecimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
         private static readonly char GroupSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator);
         private static readonly char NegativeSign = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NegativeSign);
@@ -97,7 +98,7 @@ namespace Controls
             {
                 // Deso el valor en base.Text, no ho faig a través de "Text" perquè he de dona diferents valors a 'base.Text' i 'vTextAnt'.
                 base.Text = value.ToString(_Format);
-                vTextAnt = value.ToString("0.00########", CultureInfo.CurrentCulture);
+                vTextOrig = value.ToString("0.00########", CultureInfo.CurrentCulture);
 
                 if (_NegatiusEnVermell)
                 {
@@ -144,7 +145,7 @@ namespace Controls
             set
             {
                 base.Text = value;
-                vTextAnt = value;
+                vTextOrig = value;
             }
         }
 
@@ -244,9 +245,12 @@ namespace Controls
             }
 
             if (!Equals(Text, vTextAnt) && ValorChanged != null)
+            {
+                vTextAnt = Text;
                 ValorChanged(this, e);
+            }
         }
-        
+
 
         protected override void OnLeave(EventArgs e)
         {
@@ -262,8 +266,10 @@ namespace Controls
         {
             base.OnEnter(e);
 
+            vTextAnt = vTextOrig;
+
             if (!ReadOnly)
-                Text = vTextAnt ?? ""; // Text no pot ser null perque sinò no es dispara: OnLeave
+                Text = vTextOrig ?? ""; // Text no pot ser null perque sinò no es dispara: OnLeave
             
             //vFerSelectAll = ReadOnly ? 5 : 0;
             vFerSelectAll = 5;
