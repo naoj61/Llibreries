@@ -359,15 +359,18 @@ namespace Comuns
         /// Ajusta un DataGridView a l'amplada de totes les columnes visibles.
         /// </summary>
         /// <param name="dataGridView"></param>
-        public static void AjustaAmpladaDataGridView(DataGridView dataGridView)
+        public static int AjustaAmpladaDataGridView(DataGridView dataGridView)
         {
             var vertScrollBar = dataGridView.Controls.Cast<Control>().SingleOrDefault(ctrl => ctrl.GetType() == typeof(VScrollBar));
 
             var ampladaVertScrollBar = vertScrollBar != null && vertScrollBar.Visible ? vertScrollBar.Width : 0;
             var ampladaRowHeader = dataGridView.RowHeadersVisible ? dataGridView.RowHeadersWidth : 0;
             var ampladaColumnes = dataGridView.Columns.Cast<DataGridViewColumn>().Where(w => w.Visible).Sum(column => column.Width);
+            var ampladaTotal = ampladaVertScrollBar + ampladaRowHeader + ampladaColumnes + 3;
+            
+            dataGridView.Width = ampladaTotal;
 
-            dataGridView.Width = ampladaVertScrollBar + ampladaRowHeader + ampladaColumnes + 3;
+            return ampladaTotal;
         }
 
         #endregion   *** Utilitats1 ***
