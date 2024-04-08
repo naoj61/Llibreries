@@ -269,9 +269,11 @@ namespace Controls
             vTextAnt = vTextOrig;
 
             if (!ReadOnly)
-                Text = vTextOrig ?? ""; // Text no pot ser null perque sinò no es dispara: OnLeave
-            
-            //vFerSelectAll = ReadOnly ? 5 : 0;
+            {
+                decimal cc = String.IsNullOrEmpty(vTextOrig) ? 0 : Convert.ToDecimal(vTextOrig); // Text no pot ser null perque sinò no es dispara: OnLeave
+                Text = cc.ToString(_Format);
+            }
+
             vFerSelectAll = 5;
         }
 
