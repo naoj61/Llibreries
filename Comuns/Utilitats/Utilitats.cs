@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Comuns.Properties;
+using Controls;
 using Microsoft.Win32;
 
 namespace Comuns
@@ -584,10 +585,30 @@ namespace Comuns
         /// </summary>
         /// <param name="expresio"></param>
         /// <returns></returns>
-        public static bool EsNumeric(string expresio)
+        public static bool EsNumeric(object expresio)
         {
-            double retNum;
-            return Double.TryParse(Convert.ToString(expresio), NumberStyles.Any, NumberFormatInfo.InvariantInfo, out retNum);
+            decimal retNum;
+            return Decimal.TryParse(Convert.ToString(expresio), NumberStyles.Any, NumberFormatInfo.InvariantInfo, out retNum);
+        }
+
+        /// <summary>
+        /// En cas de valors negatius en columnes tipus NumericTextBoxColumn els posa en vermell.
+        /// </summary>
+        /// <param name="dataGridView"></param>
+        public static void PosaCellesNegativesEnVermell(DataGridView dataGridView)
+        {
+            foreach (NumericTextBoxColumn numericTextBoxColumn in dataGridView.Columns.OfType<NumericTextBoxColumn>())
+            {
+                foreach (DataGridViewRow row in dataGridView.Rows)
+                {
+                    var cell = dataGridView[numericTextBoxColumn.Name, row.Index];
+                    if (cell.Value != null && cell.Value != DBNull.Value && cell.ValueType.EsTipusNumeric() && Convert.ToDecimal(cell.Value) < 0)
+                    {
+                        // Si és negatiu, establim el color del text a vermell
+                        cell.Style.ForeColor = System.Drawing.Color.Red;
+                    }
+                }
+            }
         }
 
 
