@@ -15,13 +15,6 @@ namespace Controls
 
     public class NumericCell : DataGridViewTextBoxCell
     {
-        public NumericCell()
-            : base()
-        {
-            // Assegurar que només es permeten números a la cel·la
-            this.Style.Format = "N2"; // Format per als números (opcional)
-        }
-
         public override Type EditType
         {
             get { return typeof(NumericEditingControl); }
