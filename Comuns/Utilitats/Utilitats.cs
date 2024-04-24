@@ -7,6 +7,7 @@ using System.Data.Entity.Core.EntityClient;
 using System.Data.Entity.Validation;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -594,20 +595,13 @@ namespace Comuns
         /// <summary>
         /// En cas de valors negatius en columnes tipus NumericTextBoxColumn els posa en vermell.
         /// </summary>
-        /// <param name="dataGridView"></param>
-        public static void PosaCellesNegativesEnVermell(DataGridView dataGridView)
+        /// <param name="cell"></param>
+        public static void PosaCellesNegativesEnVermell(DataGridViewCell cell)
         {
-            foreach (NumericTextBoxColumn numericTextBoxColumn in dataGridView.Columns.OfType<NumericTextBoxColumn>())
+            // Si és negatiu, establim el color del text a vermell
+            if (cell is NumericCell)
             {
-                foreach (DataGridViewRow row in dataGridView.Rows)
-                {
-                    var cell = dataGridView[numericTextBoxColumn.Name, row.Index];
-                    if (cell.Value != null && cell.Value != DBNull.Value && cell.ValueType.EsTipusNumeric() && Convert.ToDecimal(cell.Value) < 0)
-                    {
-                        // Si és negatiu, establim el color del text a vermell
-                        cell.Style.ForeColor = System.Drawing.Color.Red;
-                    }
-                }
+                cell.Style.ForeColor = Convert.ToDecimal(cell.Value) < 0 ? Color.Red : Color.Black;
             }
         }
 
