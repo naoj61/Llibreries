@@ -591,20 +591,7 @@ namespace Comuns
             decimal retNum;
             return Decimal.TryParse(Convert.ToString(expresio), NumberStyles.Any, NumberFormatInfo.InvariantInfo, out retNum);
         }
-
-        /// <summary>
-        /// En cas de valors negatius en columnes tipus NumericTextBoxColumn els posa en vermell.
-        /// </summary>
-        /// <param name="cell"></param>
-        public static void PosaCellesNegativesEnVermell(DataGridViewCell cell)
-        {
-            // Si és negatiu, establim el color del text a vermell
-            if (cell is NumericCell)
-            {
-                cell.Style.ForeColor = Convert.ToDecimal(cell.Value) < 0 ? Color.Red : Color.Black;
-            }
-        }
-
+        
 
         #region Compara cadenes. Per camps string del ERP.
 
