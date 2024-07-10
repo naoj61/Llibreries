@@ -270,8 +270,7 @@ namespace Controls
 
             if (!ReadOnly)
             {
-                decimal cc = String.IsNullOrEmpty(vTextOrig) ? 0 : Convert.ToDecimal(vTextOrig); // Text no pot ser null perque sinò no es dispara: OnLeave
-                Text = cc.ToString(_Format);
+                Text = vTextOrig = vTextOrig.Replace("€", "").Trim(); // Elimino el simbol '€'
             }
 
             vFerSelectAll = 5;
