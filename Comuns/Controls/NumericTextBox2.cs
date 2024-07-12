@@ -31,14 +31,13 @@ namespace Controls
         public event EventHandler ValorChanged;
 
         // Desa el format original de Text, abans d'aplicar el format.
-        private string vTextOrig; // És el valor asignat abans de editarlo
         private string vTextAnt; // És el valor que té abans de cada pulsació mentre s'edita.
         private static readonly char DecimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
         private static readonly char GroupSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator);
         private static readonly char NegativeSign = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NegativeSign);
 
         private bool vPaste;
-        
+
         /// <summary>
         /// Utilitzo la variable per saber quan s'ha de seleccionar tot el text al fer clic. 
         /// Aixó és perquè encara que faci SelectAll en Enter si enfoco el control amb un clic se deselecciona el text.
@@ -46,9 +45,9 @@ namespace Controls
         /// </summary>
         private int vFerSelectAll;
 
-
         public string _Format { get; set; }
-        
+
+
         public bool _NegatiusEnVermell { get; set; }
 
         [Browsable(false)]
@@ -88,7 +87,7 @@ namespace Controls
         public double ValorDouble
         {
             get { return _DoubleValue; }
-            set { Valor = (decimal) value;  }
+            set { Valor = (decimal) value; }
         }
 
         public decimal Valor
@@ -96,9 +95,7 @@ namespace Controls
             get { return _DecimalValue; }
             set
             {
-                // Deso el valor en base.Text, no ho faig a través de "Text" perquè he de dona diferents valors a 'base.Text' i 'vTextAnt'.
-                base.Text = value.ToString(_Format);
-                vTextOrig = value.ToString("0.00########", CultureInfo.CurrentCulture);
+                Text = value.ToString(_Format);
 
                 if (_NegatiusEnVermell)
                 {
@@ -113,7 +110,7 @@ namespace Controls
                     else if (vForeCol.HasValue)
                     {
                         ForeColor = vForeCol.Value;
-                    } 
+                    }
                 }
             }
         }
@@ -135,18 +132,10 @@ namespace Controls
         /// <returns></returns>
         private static string EliminaCaracterNoNumerics(string text)
         {
-            return new String(text.Where(c => char.IsDigit(c) || c == DecimalSeparator || c == '-').ToArray());
-        }
-        
+            if (text == null)
+                return null;
 
-        public override string Text
-        {
-            get { return base.Text; }
-            set
-            {
-                base.Text = value;
-                vTextOrig = value;
-            }
+            return new String(text.Where(c => char.IsDigit(c) || c == DecimalSeparator || c == '-').ToArray());
         }
 
 
@@ -188,8 +177,25 @@ namespace Controls
             // Ctrl+V Paste. (Shift+Insert ja ho fa sol)
             if (e.KeyData == (Keys.V | Keys.Control))
             {
-                vPaste = true;
-                Paste();
+                var xx = EliminaCaracterNoNumerics(Text + Clipboard.GetText());
+
+                if (xx.Count(c => c.Equals(',')) > 1)
+                {
+                    MessageBox.Show("No poden haver dos comes decimals");
+                }
+                else if (xx.Count(c => c.Equals('-')) == 1 && !_PermetNegatius)
+                {
+                    MessageBox.Show("No s'accepten negatius");
+                }
+                else if (xx.Count(c => c.Equals('-')) > 1)
+                {
+                    MessageBox.Show("No poden haver dos signes negatius");
+                }
+                else
+                {
+                    vPaste = true;
+                    Paste();
+                }
             }
         }
 
@@ -241,10 +247,17 @@ namespace Controls
             if (vPaste)
             {
                 Text = EliminaCaracterNoNumerics(base.Text);
+                
+                if(Text.Contains('-') && Text[0] != '-')
+                {
+                    // Si el signe '-' no està a l'inici de la cadena, el mov.
+                    Text = "-" + Text.Replace("-", "");
+                }
+
                 vPaste = false;
             }
 
-            if (!Equals(Text, vTextAnt) && ValorChanged != null)
+            if (ValorChanged != null && !Equals(EliminaCaracterNoNumerics(Text), EliminaCaracterNoNumerics(vTextAnt)))
             {
                 vTextAnt = Text;
                 ValorChanged(this, e);
@@ -256,9 +269,7 @@ namespace Controls
         {
             base.OnLeave(e);
 
-            Text = base.Text;
-
-            base.Text = Valor.ToString(_Format);
+            Text = Valor.ToString(_Format);
         }
 
 
@@ -266,15 +277,17 @@ namespace Controls
         {
             base.OnEnter(e);
 
-            vTextAnt = vTextOrig;
-
             if (!ReadOnly)
             {
-                Text = vTextOrig = vTextOrig.Replace("€", "").Trim(); // Elimino el simbol '€'
+                var textSenseMoneda = EliminaCaracterNoNumerics(Text);
+
+                vTextAnt = textSenseMoneda; // "vTextAnt" controla l'event "ValorChanged" aquí evito que es dispari només per entrar en el control.
+                Text = textSenseMoneda;
             }
 
             vFerSelectAll = 5;
         }
+
 
         protected override void OnMouseClick(MouseEventArgs e)
         {
@@ -287,18 +300,12 @@ namespace Controls
             }
         }
 
+
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-           
+
             vFerSelectAll--;
-        }
-
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            this.ResumeLayout(false);
-
         }
     }
 }
