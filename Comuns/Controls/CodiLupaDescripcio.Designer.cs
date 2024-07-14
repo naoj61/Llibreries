@@ -122,7 +122,7 @@
             0,
             0,
             0});
-            this.tbCodiNumeric.ValorDouble = 0D;
+            this.tbCodiNumeric.Valor = 0m;
             this.tbCodiNumeric.Visible = false;
             this.tbCodiNumeric.TextChanged += new System.EventHandler(this.tbCodiNumeric_TextChanged);
             this.tbCodiNumeric.Enter += new System.EventHandler(this.tbCodiNumeric_Enter);

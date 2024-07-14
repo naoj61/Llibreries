@@ -25,15 +25,13 @@ namespace Controls
             //BackColor = Color.Blue;
             //BackColor = xx;
             //BackColor = BackColor;
-
         }
 
         public event EventHandler ValorChanged;
-       
+
         private const int WM_PASTE = 0x0302;
 
         // Desa el format original de Text, abans d'aplicar el format.
-        private string vTextAnt; // És el valor que té abans de cada pulsació mentre s'edita.
         private static readonly char DecimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
         private static readonly char GroupSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator);
         private static readonly char NegativeSign = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NegativeSign);
@@ -45,73 +43,43 @@ namespace Controls
         /// </summary>
         private int vFerSelectAll;
 
-        public string _Format { get; set; }
+        // És on deso el valor de Text en format decimal.
+        private decimal vNumeroValor;
+        private Color? vForeCol;
 
+
+        #region *** Atributs ***
+
+        public string _Format { get; set; }
 
         public bool _NegatiusEnVermell { get; set; }
 
         [Browsable(false)]
         public int _IntValue
         {
-            get
-            {
-                string num = EliminaCaracterNoNumerics(base.Text);
-                return String.IsNullOrEmpty(num) ? 0 : Int32.Parse(num);
-            }
+            get { return (int) vNumeroValor; }
         }
 
         [Browsable(false)]
         public decimal _DecimalValue
         {
-            get
-            {
-                string num = EliminaCaracterNoNumerics(base.Text);
-                return String.IsNullOrEmpty(num) ? 0 : Decimal.Parse(num);
-            }
+            get { return vNumeroValor; }
         }
 
         [Browsable(false)]
         public double _DoubleValue
         {
-            get
-            {
-                string num = EliminaCaracterNoNumerics(base.Text);
-                return String.IsNullOrEmpty(num) ? 0 : Double.Parse(num);
-            }
-        }
-
-
-
-        private Color? vForeCol;
-
-        public double ValorDouble
-        {
-            get { return _DoubleValue; }
-            set { Valor = (decimal) value; }
+            get { return (double) vNumeroValor; }
         }
 
         public decimal Valor
         {
-            get { return _DecimalValue; }
+            get { return vNumeroValor; }
             set
             {
+                // Al modificar Text es modifica vNumeroValor
+                //vNumeroValor = value;
                 Text = value.ToString(_Format);
-
-                if (_NegatiusEnVermell)
-                {
-                    if (value < 0)
-                    {
-                        if (ForeColor != Color.Red)
-                            // Si el valor anterior ja era negatiu, es desaria com ForeColor el vermell.
-                            vForeCol = ForeColor;
-
-                        ForeColor = Color.Red;
-                    }
-                    else if (vForeCol.HasValue)
-                    {
-                        ForeColor = vForeCol.Value;
-                    }
-                }
             }
         }
 
@@ -124,6 +92,7 @@ namespace Controls
         [Description("Si true, restaura valor inicial al premer ESC.")]
         public bool _CapturaEscape { get; set; }
 
+        #endregion *** Atributs ***
 
         /// <summary>
         /// Elimina tots els caràctes no numèrics excepte ".,-",
@@ -136,6 +105,27 @@ namespace Controls
                 return null;
 
             return new String(text.Where(c => char.IsDigit(c) || c == DecimalSeparator || c == '-').ToArray());
+        }
+
+        /// <summary>
+        /// Canvia el color del valor.
+        /// </summary>
+        private void colorNumero()
+        {
+            if (_NegatiusEnVermell && vNumeroValor < 0 && !vEditant)
+            {
+                if (ForeColor != Color.Red)
+                {
+                    // Deso si ForeColor actual no és Vermell.
+                    vForeCol = ForeColor;
+
+                    ForeColor = Color.Red;
+                }
+            }
+            else
+            {
+                ForeColor = vForeCol.GetValueOrDefault(Color.Black);
+            }
         }
 
 
@@ -292,30 +282,43 @@ namespace Controls
         {
             base.OnTextChanged(e);
 
-            if (ValorChanged != null && !Equals(EliminaCaracterNoNumerics(Text), EliminaCaracterNoNumerics(vTextAnt)))
+            // Dispara l'event si fa falta
+            if (ValorChanged != null)
             {
-                vTextAnt = Text;
                 ValorChanged(this, e);
             }
+
+            var valorNum = EliminaCaracterNoNumerics(Text);
+
+            vNumeroValor = String.IsNullOrEmpty(valorNum) ? 0 : Convert.ToDecimal(valorNum);
+
+            colorNumero();
         }
 
         protected override void OnLeave(EventArgs e)
         {
             base.OnLeave(e);
 
+            vEditant = false;
+
             Text = Valor.ToString(_Format);
+
+            colorNumero();
         }
 
+        private bool vEditant = false;
         protected override void OnEnter(EventArgs e)
         {
             base.OnEnter(e);
 
             if (!ReadOnly)
             {
-                var textSenseMoneda = EliminaCaracterNoNumerics(Text);
+                vEditant = true;
 
-                vTextAnt = textSenseMoneda; // "vTextAnt" controla l'event "ValorChanged" aquí evito que es dispari només per entrar en el control.
-                Text = textSenseMoneda;
+                // Text sense Moneda.
+                Text = vNumeroValor.ToString(CultureInfo.CurrentCulture);
+
+                ForeColor = vForeCol.GetValueOrDefault(Color.Black);
             }
 
             vFerSelectAll = 5;
