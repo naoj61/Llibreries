@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Comuns;
 
 namespace Controls
 {
@@ -14,7 +15,7 @@ namespace Controls
         public NumericTextBox2()
         {
             _CapturaEscape = true;
-            _Format = "#.#";
+            _Format = "0.#";
             TextAlign = HorizontalAlignment.Right;
             _PermetNegatius = true;
             _PermetDecimals = true;
@@ -44,7 +45,6 @@ namespace Controls
         private int vFerSelectAll;
 
         // És on deso el valor de Text en format decimal.
-        private decimal vNumeroValor;
         private Color? vForeCol;
         private bool vEditant;
 
@@ -58,28 +58,30 @@ namespace Controls
         [Browsable(false)]
         public int _IntValue
         {
-            get { return (int) vNumeroValor; }
+            get { return (int) Valor; }
         }
 
         [Browsable(false)]
         public decimal _DecimalValue
         {
-            get { return vNumeroValor; }
+            get { return Valor; }
         }
 
         [Browsable(false)]
         public double _DoubleValue
         {
-            get { return (double) vNumeroValor; }
+            get { return (double)Valor; }
         }
 
         public decimal Valor
         {
-            get { return vNumeroValor; }
+            get
+            {
+                decimal valorDecimal;
+                return decimal.TryParse(EliminaCaracterNoNumerics(Text), out valorDecimal) ? valorDecimal : 0;
+            }            
             set
             {
-                // Al modificar Text es modifica vNumeroValor
-                //vNumeroValor = value;
                 Text = value.ToString(_Format);
             }
         }
@@ -96,7 +98,7 @@ namespace Controls
         #endregion *** Atributs ***
 
         /// <summary>
-        /// Elimina tots els caràctes no numèrics excepte ".,-",
+        /// Elimina tots els caràctes no numèrics excepte ".,-" i posa el signe menys al principi si en té.
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
@@ -104,7 +106,7 @@ namespace Controls
         {
             if (text == null)
                 return null;
-
+            
             return new String(text.Where(c => char.IsDigit(c) || c == DecimalSeparator || c == '-').ToArray());
         }
 
@@ -113,7 +115,7 @@ namespace Controls
         /// </summary>
         private void colorNumero()
         {
-            if (_NegatiusEnVermell && vNumeroValor < 0)
+            if (_NegatiusEnVermell && Valor < 0)
             {
                 if (ForeColor != Color.Red)
                 {
@@ -131,7 +133,7 @@ namespace Controls
 
 
         /// <summary>
-        /// Gestiona el Paste.
+        /// Gestiona el Paste, fa les validacions.
         /// </summary>
         /// <returns></returns>
         private bool HandlePaste()
@@ -254,14 +256,14 @@ namespace Controls
             {
                 // Decimal separator is OK
             }
-            else if (e.KeyChar.Equals(NegativeSign) && _PermetNegatius && vNumeroValor != 0)// && Text.IndexOf(NegativeSign) == -1)
+            else if (e.KeyChar.Equals(NegativeSign))
             {
-                // Negative sign is OK
-
-                // Poso el signe al principi.
-                Text = NegativeSign + Text.Replace(NegativeSign.ToString(), string.Empty);
-
-                e.Handled = true;
+                if (!_PermetNegatius || Valor == 0 || Text.Contains(NegativeSign))
+                {
+                    // Si no permet negatius o valor = 0 o ja conté signe, salta la pulsació
+                    e.Handled = true; // No escriu el signe
+                    // Negative sign is KO
+                }
             }
             else if (e.KeyChar == '\b')
             {
@@ -273,7 +275,7 @@ namespace Controls
             }
             else
             {
-                e.Handled = true;
+                e.Handled = true; // El caracter no s'escriurà.
             }
         }
 
@@ -281,18 +283,19 @@ namespace Controls
         {
             base.OnTextChanged(e);
 
+            // Posa el signe al principi.
+            if (Text.Length > 0 && Text[0] != NegativeSign && Text.Contains(NegativeSign))
+                Text = NegativeSign + Text.Replace(NegativeSign.ToString(), String.Empty);
+            
+            // Canvia el color si fa falta
+            if (!vEditant)
+                colorNumero();
+
             // Dispara l'event si fa falta
             if (ValorChanged != null)
             {
                 ValorChanged(this, e);
             }
-
-            var valorNum = EliminaCaracterNoNumerics(Text);
-
-            vNumeroValor = String.IsNullOrEmpty(valorNum) ? 0 : Convert.ToDecimal(valorNum);
-
-            if (!vEditant)
-                colorNumero();
         }
 
         protected override void OnEnter(EventArgs e)
@@ -304,7 +307,7 @@ namespace Controls
                 vEditant = true;
 
                 // Text sense Moneda.
-                Text = vNumeroValor.ToString(CultureInfo.CurrentCulture);
+                Text = EliminaCaracterNoNumerics(Text);
 
                 ForeColor = vForeCol.GetValueOrDefault(Color.Black);
             }
