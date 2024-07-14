@@ -29,14 +29,14 @@ namespace Controls
         }
 
         public event EventHandler ValorChanged;
+       
+        private const int WM_PASTE = 0x0302;
 
         // Desa el format original de Text, abans d'aplicar el format.
         private string vTextAnt; // És el valor que té abans de cada pulsació mentre s'edita.
         private static readonly char DecimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
         private static readonly char GroupSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator);
         private static readonly char NegativeSign = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NegativeSign);
-
-        private bool vPaste;
 
         /// <summary>
         /// Utilitzo la variable per saber quan s'ha de seleccionar tot el text al fer clic. 
@@ -139,6 +139,73 @@ namespace Controls
         }
 
 
+        /// <summary>
+        /// Gestiona el Paste.
+        /// </summary>
+        /// <returns></returns>
+        private bool HandlePaste()
+        {
+            if (Clipboard.ContainsText())
+            {
+                string clipboardText = Clipboard.GetText();
+
+                // Obtenir la posició inicial i la longitud de la selecció
+                int selectionStart = this.SelectionStart;
+                int selectionLength = this.SelectionLength;
+
+                // Obtenir el text abans de la selecció
+                string unselectedTextBefore = Text.Substring(0, selectionStart);
+
+                // Obtenir el text després de la selecció
+                string unselectedTextAfter = Text.Substring(selectionStart + selectionLength);
+
+                // Combinar el text no seleccionat
+                string textResultant = unselectedTextBefore + clipboardText + unselectedTextAfter;
+
+                if (textResultant.Contains('-'))
+                    // Si té el signe "-" el coloco al principi i si en te més d'un elimino la resta.
+                    textResultant = "-" + textResultant.Replace("-", "");
+
+
+
+                // *** Validacions textResultant.
+
+                // Permetre números, una coma decimal i un signe
+                const string pattern = @"^-?\d*[,]?\d*$";
+                if (!Regex.IsMatch(textResultant, pattern))
+                {
+                    // Si entra és que hi ha lletres en el paste o més d'una coma o més d'un signe '-'.
+
+                    MessageBox.Show("Format o caracters no permesos.");
+                }
+                else if (textResultant.Contains('-') && !_PermetNegatius)
+                {
+                    MessageBox.Show("No s'accepten negatius");
+                }
+                else
+                {
+                    Text = textResultant;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        #region *** Overrides ***
+
+        protected override void WndProc(ref Message m)
+        {
+            if ((m.Msg == WM_PASTE))
+            {
+                HandlePaste();
+            }
+            else
+            {
+                base.WndProc(ref m);
+            }
+        }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -147,16 +214,16 @@ namespace Controls
             {
                 if (Modified)
                 {
-                    Undo(); //Text = vTextAnt;
+                    Undo();
                     Modified = false;
                 }
-                //e.SuppressKeyPress = true;
             }
 
             if (e.KeyData == (Keys.Insert | Keys.Shift))
             {
-                // Ha d'anar aquí perquè Shift+Insert fa el paste automàticament i es dispara "OnTextChanged" abans de OnKeyUp".
-                vPaste = true;
+                // Shift+Insert fa el paste automàticament i es dispara "OnTextChanged" abans de OnKeyUp".
+                // Cancel·lo el Paste perquè el controlo des de "OnKeyUp".
+                e.SuppressKeyPress = true;
             }
         }
 
@@ -174,31 +241,13 @@ namespace Controls
             {
                 Copy();
             }
-            // Ctrl+V Paste. (Shift+Insert ja ho fa sol)
-            if (e.KeyData == (Keys.V | Keys.Control))
+            // Ctrl+V o Shift+Insert Paste.
+            if (e.KeyData == (Keys.V | Keys.Control)
+                || e.KeyData == (Keys.Insert | Keys.Shift))
             {
-                var xx = EliminaCaracterNoNumerics(Text + Clipboard.GetText());
-
-                if (xx.Count(c => c.Equals(',')) > 1)
-                {
-                    MessageBox.Show("No poden haver dos comes decimals");
-                }
-                else if (xx.Count(c => c.Equals('-')) == 1 && !_PermetNegatius)
-                {
-                    MessageBox.Show("No s'accepten negatius");
-                }
-                else if (xx.Count(c => c.Equals('-')) > 1)
-                {
-                    MessageBox.Show("No poden haver dos signes negatius");
-                }
-                else
-                {
-                    vPaste = true;
-                    Paste();
-                }
+                e.Handled = HandlePaste();
             }
         }
-
 
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
@@ -239,23 +288,9 @@ namespace Controls
             }
         }
 
-
         protected override void OnTextChanged(EventArgs e)
         {
             base.OnTextChanged(e);
-
-            if (vPaste)
-            {
-                Text = EliminaCaracterNoNumerics(base.Text);
-                
-                if(Text.Contains('-') && Text[0] != '-')
-                {
-                    // Si el signe '-' no està a l'inici de la cadena, el mov.
-                    Text = "-" + Text.Replace("-", "");
-                }
-
-                vPaste = false;
-            }
 
             if (ValorChanged != null && !Equals(EliminaCaracterNoNumerics(Text), EliminaCaracterNoNumerics(vTextAnt)))
             {
@@ -264,14 +299,12 @@ namespace Controls
             }
         }
 
-
         protected override void OnLeave(EventArgs e)
         {
             base.OnLeave(e);
 
             Text = Valor.ToString(_Format);
         }
-
 
         protected override void OnEnter(EventArgs e)
         {
@@ -288,7 +321,6 @@ namespace Controls
             vFerSelectAll = 5;
         }
 
-
         protected override void OnMouseClick(MouseEventArgs e)
         {
             base.OnMouseClick(e);
@@ -300,12 +332,13 @@ namespace Controls
             }
         }
 
-
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
 
             vFerSelectAll--;
         }
+
+        #endregion *** Overrides ***
     }
 }
