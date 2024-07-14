@@ -46,6 +46,7 @@ namespace Controls
         // És on deso el valor de Text en format decimal.
         private decimal vNumeroValor;
         private Color? vForeCol;
+        private bool vEditant;
 
 
         #region *** Atributs ***
@@ -112,7 +113,7 @@ namespace Controls
         /// </summary>
         private void colorNumero()
         {
-            if (_NegatiusEnVermell && vNumeroValor < 0 && !vEditant)
+            if (_NegatiusEnVermell && vNumeroValor < 0)
             {
                 if (ForeColor != Color.Red)
                 {
@@ -154,8 +155,7 @@ namespace Controls
 
                 if (textResultant.Contains('-'))
                     // Si té el signe "-" el coloco al principi i si en te més d'un elimino la resta.
-                    textResultant = "-" + textResultant.Replace("-", "");
-
+                    textResultant = NegativeSign + textResultant.Replace(NegativeSign.ToString(), string.Empty);
 
 
                 // *** Validacions textResultant.
@@ -254,14 +254,13 @@ namespace Controls
             {
                 // Decimal separator is OK
             }
-            else if (e.KeyChar.Equals(NegativeSign) && _PermetNegatius && Text.IndexOf(NegativeSign) == -1)
+            else if (e.KeyChar.Equals(NegativeSign) && _PermetNegatius && vNumeroValor != 0)// && Text.IndexOf(NegativeSign) == -1)
             {
                 // Negative sign is OK
 
                 // Poso el signe al principi.
-                int pos = SelectionStart + 1;
-                Text = NegativeSign + Text;
-                Select(pos, 0);
+                Text = NegativeSign + Text.Replace(NegativeSign.ToString(), string.Empty);
+
                 e.Handled = true;
             }
             else if (e.KeyChar == '\b')
@@ -292,21 +291,10 @@ namespace Controls
 
             vNumeroValor = String.IsNullOrEmpty(valorNum) ? 0 : Convert.ToDecimal(valorNum);
 
-            colorNumero();
+            if (!vEditant)
+                colorNumero();
         }
 
-        protected override void OnLeave(EventArgs e)
-        {
-            base.OnLeave(e);
-
-            vEditant = false;
-
-            Text = Valor.ToString(_Format);
-
-            colorNumero();
-        }
-
-        private bool vEditant = false;
         protected override void OnEnter(EventArgs e)
         {
             base.OnEnter(e);
@@ -322,6 +310,17 @@ namespace Controls
             }
 
             vFerSelectAll = 5;
+        }
+
+        protected override void OnLeave(EventArgs e)
+        {
+            base.OnLeave(e);
+
+            vEditant = false;
+
+            Text = Valor.ToString(_Format);
+
+            colorNumero();
         }
 
         protected override void OnMouseClick(MouseEventArgs e)
