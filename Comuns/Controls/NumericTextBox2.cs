@@ -158,7 +158,8 @@ namespace Controls
                 string unselectedTextAfter = Text.Substring(selectionStart + selectionLength);
 
                 // Combinar el text no seleccionat
-                string textResultant = unselectedTextBefore + clipboardText + unselectedTextAfter;
+                string textResultant = EliminaCaracterNoNumerics(unselectedTextBefore + clipboardText + unselectedTextAfter);
+
 
                 if (textResultant.Contains('-'))
                     // Si té el signe "-" el coloco al principi i si en te més d'un elimino la resta.
@@ -175,7 +176,7 @@ namespace Controls
 
                     MessageBox.Show("Format o caracters no permesos.");
                 }
-                else if (textResultant.Contains('-') && !_PermetNegatius)
+                else if (!_PermetNegatius && textResultant.Contains('-'))
                 {
                     MessageBox.Show("No s'accepten negatius");
                 }
