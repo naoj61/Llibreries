@@ -109,7 +109,6 @@
             this.tbCodiNumeric._Format = "#.#";
             this.tbCodiNumeric._NegatiusEnVermell = false;
             this.tbCodiNumeric._PermetDecimals = true;
-            this.tbCodiNumeric._PermetEspais = false;
             this.tbCodiNumeric._PermetNegatius = true;
             this.tbCodiNumeric.Location = new System.Drawing.Point(111, 9);
             this.tbCodiNumeric.Margin = new System.Windows.Forms.Padding(6, 9, 3, 5);

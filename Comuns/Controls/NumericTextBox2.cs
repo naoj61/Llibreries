@@ -19,7 +19,6 @@ namespace Controls
             TextAlign = HorizontalAlignment.Right;
             _PermetNegatius = true;
             _PermetDecimals = true;
-            _PermetEspais = false;
 
             // *** Per alguna raó, si no cambio primer el BackColor no es canvia el ForeColor si el control està readOnly o Disabled.
             //var xx = BackColor;
@@ -27,6 +26,9 @@ namespace Controls
             //BackColor = xx;
             //BackColor = BackColor;
         }
+
+
+        #region *** Variables ***
 
         public event EventHandler ValorChanged;
 
@@ -47,13 +49,11 @@ namespace Controls
         // És on deso el valor de Text en format decimal.
         private Color? vForeCol;
         private bool vEditant;
+        
+        #endregion *** Variables ***
 
 
         #region *** Atributs ***
-
-        public string _Format { get; set; }
-
-        public bool _NegatiusEnVermell { get; set; }
 
         [Browsable(false)]
         public int _IntValue
@@ -86,16 +86,21 @@ namespace Controls
             }
         }
 
-        public bool _PermetEspais { get; set; }
+        public string _Format { private get; set; }
 
-        public bool _PermetNegatius { get; set; }
+        public bool _NegatiusEnVermell { private get; set; }
 
-        public bool _PermetDecimals { get; set; }
+        public bool _PermetNegatius { private get; set; }
+
+        public bool _PermetDecimals { private get; set; }
 
         [Description("Si true, restaura valor inicial al premer ESC.")]
-        public bool _CapturaEscape { get; set; }
+        public bool _CapturaEscape { private get; set; }
 
         #endregion *** Atributs ***
+
+
+        #region *** Mètodes ***
 
         /// <summary>
         /// Elimina tots els caràctes no numèrics excepte ".,-" i posa el signe menys al principi si en té.
@@ -106,7 +111,7 @@ namespace Controls
         {
             if (text == null)
                 return null;
-            
+
             return new String(text.Where(c => char.IsDigit(c) || c == DecimalSeparator || c == '-').ToArray());
         }
 
@@ -182,6 +187,8 @@ namespace Controls
             }
             return false;
         }
+        
+        #endregion *** Mètodes ***
 
 
         #region *** Overrides ***
@@ -268,10 +275,6 @@ namespace Controls
             else if (e.KeyChar == '\b')
             {
                 // Backspace key is OK
-            }
-            else if (_PermetEspais && e.KeyChar == ' ')
-            {
-                // Space key is OK
             }
             else
             {
