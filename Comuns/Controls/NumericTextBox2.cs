@@ -73,6 +73,7 @@ namespace Controls
             get { return (double)Valor; }
         }
 
+        [Browsable(true)]
         public decimal Valor
         {
             get
@@ -86,16 +87,21 @@ namespace Controls
             }
         }
 
-        public string _Format { private get; set; }
+        [Browsable(true)]
+        public string _Format { get; set; }
 
-        public bool _NegatiusEnVermell { private get; set; }
+        [Browsable(true)]
+        public bool _NegatiusEnVermell { get; set; }
 
-        public bool _PermetNegatius { private get; set; }
+        [Browsable(true)]
+        public bool _PermetNegatius { get; set; }
 
-        public bool _PermetDecimals { private get; set; }
+        [Browsable(true)]
+        public bool _PermetDecimals { get; set; }
 
         [Description("Si true, restaura valor inicial al premer ESC.")]
-        public bool _CapturaEscape { private get; set; }
+        [Browsable(true)]
+        public bool _CapturaEscape { get; set; }
 
         #endregion *** Atributs ***
 
