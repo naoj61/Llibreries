@@ -109,7 +109,7 @@ namespace Controls
         #region *** Mètodes ***
 
         /// <summary>
-        /// Elimina tots els caràctes no numèrics excepte ".,-" i posa el signe menys al principi si en té.
+        /// Elimina tots els caràctes no numèrics excepte '-' i ','.
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
@@ -144,6 +144,29 @@ namespace Controls
 
 
         /// <summary>
+        /// Retorna el text que no està seleccionat i inserta el text del paràmetre en la posició del cursor.
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private string textNoSeleccionat(string text)
+        {
+            // Obtenir la posició inicial i la longitud de la selecció
+            int selectionStart = this.SelectionStart;
+            int selectionLength = this.SelectionLength;
+
+            // Obtenir el text abans de la selecció
+            string unselectedTextBefore = Text.Substring(0, selectionStart);
+
+            // Obtenir el text després de la selecció
+            string unselectedTextAfter = Text.Substring(selectionStart + selectionLength);
+
+            // Combinar el text no seleccionat
+            return unselectedTextBefore + text + unselectedTextAfter;
+        }
+
+
+        /// <summary>
         /// Gestiona el Paste, fa les validacions.
         /// </summary>
         /// <returns></returns>
@@ -151,46 +174,51 @@ namespace Controls
         {
             if (Clipboard.ContainsText())
             {
-                string clipboardText = Clipboard.GetText();
+                string textClipboard = Clipboard.GetText().Replace(".", ""); // Elimino el punt de milers.
+                
+                textClipboard = Utilitats.RemoveCurrencySymbols(textClipboard); // Elimino el simbol de moneda.
 
-                // Obtenir la posició inicial i la longitud de la selecció
-                int selectionStart = this.SelectionStart;
-                int selectionLength = this.SelectionLength;
-
-                // Obtenir el text abans de la selecció
-                string unselectedTextBefore = Text.Substring(0, selectionStart);
-
-                // Obtenir el text després de la selecció
-                string unselectedTextAfter = Text.Substring(selectionStart + selectionLength);
-
-                // Combinar el text no seleccionat
-                string textResultant = EliminaCaracterNoNumerics(unselectedTextBefore + clipboardText + unselectedTextAfter);
-
-
-                if (textResultant.Contains('-'))
-                    // Si té el signe "-" el coloco al principi i si en te més d'un elimino la resta.
-                    textResultant = NegativeSign + textResultant.Replace(NegativeSign.ToString(), string.Empty);
-
-
-                // *** Validacions textResultant.
-
-                // Permetre números, una coma decimal i un signe
-                const string pattern = @"^-?\d*[,]?\d*$";
-                if (!Regex.IsMatch(textResultant, pattern))
+                // Comprovo que el Clipboard conté unvalor numèric.
+                decimal valorDecimal;
+                if (!decimal.TryParse(textClipboard, out valorDecimal))
                 {
-                    // Si entra és que hi ha lletres en el paste o més d'una coma o més d'un signe '-'.
-
                     MessageBox.Show("Format o caracters no permesos.");
+                    return false;
                 }
-                else if (!_PermetNegatius && textResultant.Contains('-'))
+
+                // Valida si Clipboard conté signe.
+                if (textClipboard.Contains(NegativeSign))
                 {
-                    MessageBox.Show("No s'accepten negatius");
+                    if (!_PermetNegatius)
+                    {
+                        MessageBox.Show("No s'accepten negatius");
+                        return false;
+                    }
+
+                    if (Text.Contains(NegativeSign) && SelectionStart > 1 || !Text.Contains(NegativeSign) && SelectionStart > 0)
+                    {
+                        // No permet Paste si te '-', però el cursor no està al principi.
+                        MessageBox.Show("Format o caracters no permesos.");
+                        return false;
+                    }
                 }
+
+                string textFinal = textNoSeleccionat(textClipboard);
+
+                if (textFinal.Count(c => c == DecimalSeparator) > 1)
+                {
+                    // Hi ha més d'una coma.
+                    MessageBox.Show("Format o caracters no permesos.");
+                    return false;
+                }
+
+                if (textFinal.Count(c => c == NegativeSign) > 1)
+                    // Hi ha més d'un signe.
+                    Text = NegativeSign + textFinal.Replace("-", "");
                 else
-                {
-                    Text = textResultant;
-                    return true;
-                }
+                    Text = textFinal;
+
+                return true;
             }
             return false;
         }
@@ -233,6 +261,42 @@ namespace Controls
             }
         }
 
+        protected override void OnKeyPress(KeyPressEventArgs e)
+        {
+            base.OnKeyPress(e);
+
+            if (e.KeyChar == GroupSeparator)
+                e.KeyChar = DecimalSeparator;
+
+            var textNoSeleccionat = this.textNoSeleccionat(null);
+
+            if (Char.IsDigit(e.KeyChar))
+            {
+                // Digits are OK
+            }
+            else if (e.KeyChar == DecimalSeparator && _PermetDecimals && textNoSeleccionat.IndexOf(DecimalSeparator) == -1)
+            {
+                // Decimal separator is OK
+            }
+            else if (e.KeyChar.Equals(NegativeSign))
+            {
+                if (!_PermetNegatius || textNoSeleccionat.Contains(NegativeSign))
+                {
+                    // Si no permet negatius o ja conté signe, salta la pulsació
+                    e.Handled = true; // No escriu el signe
+                    // Negative sign is KO
+                }
+            }
+            else if (e.KeyChar == '\b')
+            {
+                // Backspace key is OK
+            }
+            else
+            {
+                e.Handled = true; // El caracter no s'escriurà.
+            }
+        }
+
         protected override void OnKeyUp(KeyEventArgs e)
         {
             base.OnKeyUp(e);
@@ -255,39 +319,6 @@ namespace Controls
             }
         }
 
-        protected override void OnKeyPress(KeyPressEventArgs e)
-        {
-            base.OnKeyPress(e);
-
-            if (e.KeyChar == GroupSeparator)
-                e.KeyChar = DecimalSeparator;
-
-            if (Char.IsDigit(e.KeyChar))
-            {
-                // Digits are OK
-            }
-            else if (e.KeyChar == DecimalSeparator && _PermetDecimals && Text.IndexOf(DecimalSeparator) == -1)
-            {
-                // Decimal separator is OK
-            }
-            else if (e.KeyChar.Equals(NegativeSign))
-            {
-                if (!_PermetNegatius || Valor == 0 || Text.Contains(NegativeSign))
-                {
-                    // Si no permet negatius o valor = 0 o ja conté signe, salta la pulsació
-                    e.Handled = true; // No escriu el signe
-                    // Negative sign is KO
-                }
-            }
-            else if (e.KeyChar == '\b')
-            {
-                // Backspace key is OK
-            }
-            else
-            {
-                e.Handled = true; // El caracter no s'escriurà.
-            }
-        }
 
         protected override void OnTextChanged(EventArgs e)
         {
