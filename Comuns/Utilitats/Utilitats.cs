@@ -21,6 +21,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -373,6 +374,22 @@ namespace Comuns
             dataGridView.Width = ampladaTotal;
 
             return ampladaTotal;
+        }
+
+
+        /// <summary>
+        /// Elimina els simbol de moneda d'un text.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string RemoveCurrencySymbols(string input)
+        {
+            // Expresión regular para encontrar los símbolos de moneda
+            const string pattern = @"[\p{Sc}]";
+
+            // Reemplazar los símbolos de moneda con una cadena vacía
+            string result = Regex.Replace(input, pattern, "");
+            return result;
         }
 
         #endregion   *** Utilitats1 ***
