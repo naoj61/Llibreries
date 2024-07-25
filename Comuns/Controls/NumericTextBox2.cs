@@ -19,6 +19,8 @@ namespace Controls
             TextAlign = HorizontalAlignment.Right;
             _PermetNegatius = true;
             _PermetDecimals = true;
+            _NegatiusEnVermell = true;
+            _PermetTextNull = false;
 
             // *** Per alguna raó, si no cambio primer el BackColor no es canvia el ForeColor si el control està readOnly o Disabled.
             //var xx = BackColor;
@@ -98,6 +100,9 @@ namespace Controls
 
         [Browsable(true)]
         public bool _PermetDecimals { get; set; }
+
+        [Browsable(true)]
+        public bool _PermetTextNull { get; set; }
 
         [Description("Si true, restaura valor inicial al premer ESC.")]
         [Browsable(true)]
@@ -362,7 +367,14 @@ namespace Controls
 
             vEditant = false;
 
-            Text = Valor.ToString(_Format);
+            if (!_PermetTextNull && String.IsNullOrEmpty(Text))
+                Text = "0";
+
+            if (Valor == 0 && !Regex.IsMatch(Text, @"\d"))
+                // Si Valor = 0 i Text no te cap digit numèric, deixo Text buit. Ni 0 ni simbol de moneda.
+                Text = String.Empty;
+            else
+                Text = Valor.ToString(_Format);
 
             colorNumero();
         }
