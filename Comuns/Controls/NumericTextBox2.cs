@@ -344,11 +344,17 @@ namespace Controls
             }
         }
 
+        
         protected override void OnEnter(EventArgs e)
         {
             base.OnEnter(e);
 
-            if (!ReadOnly)
+            if (ReadOnly)
+            {
+                // Al entrar no selecciona el contingut.
+                this.SelectionStart = 0;
+            }
+            else
             {
                 vEditant = true;
 
