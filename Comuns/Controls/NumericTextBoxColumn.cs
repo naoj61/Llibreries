@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace Controls
@@ -15,6 +16,23 @@ namespace Controls
 
     public class NumericCell : DataGridViewTextBoxCell
     {
+        /// <summary>
+        /// Formateja les columnes numèriques. Si l'AutoSizeMode de la columna és Fill, no funciona!!!!
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public static void CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            var cell = ((DataGridView)sender)[e.ColumnIndex, e.RowIndex];
+
+            // Si és negatiu, establim el color del text a vermell
+            if (cell is NumericCell)
+            {
+                // ***** Si l'AutoSizeMode de la columna és Fill, no funciona!!!! *****
+                cell.Style.ForeColor = Convert.ToDecimal(cell.Value) < 0 ? Color.Red : Color.Black;
+            }
+        }
+
         public override Type EditType
         {
             get { return typeof(NumericEditingControl); }
