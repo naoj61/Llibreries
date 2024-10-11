@@ -1,6 +1,6 @@
 ﻿namespace Controls
 {
-    partial class DataGridView2
+    internal partial class DataGridView2
     {
         /// <summary> 
         /// Required designer variable.

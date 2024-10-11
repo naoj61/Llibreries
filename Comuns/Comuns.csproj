@@ -41,6 +41,10 @@
       <HintPath>..\..\A3Extensions\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NCalc, Version=1.3.8.0, Culture=neutral, PublicKeyToken=973cde3f1cafed03, processorArchitecture=MSIL">
+      <HintPath>..\..\InversionsV2\packages\ncalc.1.3.8\lib\NCalc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
@@ -63,11 +67,8 @@
     <Compile Include="Controls\ComboBox2.Designer.cs">
       <DependentUpon>ComboBox2.cs</DependentUpon>
     </Compile>
-    <Compile Include="Controls\DataGridView2.cs">
+    <Compile Include="Controls\DataGridView3.cs">
       <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Controls\DataGridView2.Designer.cs">
-      <DependentUpon>DataGridView2.cs</DependentUpon>
     </Compile>
     <Compile Include="Controls\DateTimePickerNullable.cs">
       <SubType>Component</SubType>
@@ -92,13 +93,7 @@
     </Compile>
     <Compile Include="Controls\ICodiLupaDesc.cs" />
     <Compile Include="Controls\IValorControlRestaurable.cs" />
-    <Compile Include="Controls\NumericTextBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Controls\NumericTextBox2.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Controls\NumericTextBoxColumn.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
@@ -117,9 +112,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Controls\CodiLupaDescripcio.resx">
       <DependentUpon>CodiLupaDescripcio.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\DataGridView2.resx">
-      <DependentUpon>DataGridView2.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\Etiqueta1.resx">
       <DependentUpon>Etiqueta1.cs</DependentUpon>
