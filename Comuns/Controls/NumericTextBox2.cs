@@ -23,10 +23,10 @@ namespace Controls
             _PermetTextNull = false;
 
             // *** Per alguna raó, si no cambio primer el BackColor no es canvia el ForeColor si el control està readOnly o Disabled.
-            //var xx = BackColor;
-            //BackColor = Color.Blue;
-            //BackColor = xx;
-            //BackColor = BackColor;
+            var xx = BackColor;
+            BackColor = Color.Blue;
+            BackColor = xx;
+            BackColor = BackColor;
         }
 
 
