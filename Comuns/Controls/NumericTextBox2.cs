@@ -51,6 +51,7 @@ namespace Controls
         // És on deso el valor de Text en format decimal.
         private Color? vForeCol;
         private bool vEditant;
+        private decimal vValor;
         
         #endregion *** Variables ***
 
@@ -60,19 +61,19 @@ namespace Controls
         [Browsable(false)]
         public int _IntValue
         {
-            get { return (int) Valor; }
+            get { return (int) vValor; }
         }
 
         [Browsable(false)]
         public decimal _DecimalValue
         {
-            get { return Valor; }
+            get { return vValor; }
         }
 
         [Browsable(false)]
         public double _DoubleValue
         {
-            get { return (double)Valor; }
+            get { return (double)vValor; }
         }
 
         [Browsable(true)]
@@ -80,11 +81,11 @@ namespace Controls
         {
             get
             {
-                decimal valorDecimal;
-                return decimal.TryParse(EliminaCaracterNoNumerics(Text), out valorDecimal) ? valorDecimal : 0;
+                return vValor;
             }            
             set
             {
+                vValor = value;
                 Text = value.ToString(_Format);
             }
         }
@@ -358,8 +359,8 @@ namespace Controls
             {
                 vEditant = true;
 
-                // Text sense Moneda.
-                Text = EliminaCaracterNoNumerics(Text);
+                // * No vull que surtin ceros a la dreta de la coma.
+                Text = vValor.ToString("0.###############", CultureInfo.InvariantCulture); 
 
                 ForeColor = vForeCol.GetValueOrDefault(Color.Black);
             }
