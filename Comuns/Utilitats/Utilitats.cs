@@ -608,7 +608,33 @@ namespace Comuns
             decimal retNum;
             return Decimal.TryParse(Convert.ToString(expresio), NumberStyles.Any, NumberFormatInfo.InvariantInfo, out retNum);
         }
+
+        /// <summary>
+        /// Converteix text a decimal
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static decimal TextADecimal(string text)
+        {
+            decimal valorDecimal;
+            return decimal.TryParse(text, out valorDecimal) ? valorDecimal : 0;
+        }
+
+
+        /// <summary>
+        /// Elimina tots els caràctes no numèrics excepte '-' i ','.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private static string EliminaCaracterNoNumerics(string text)
+        {
+            if (text == null)
+                return null;
         
+            char decimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
+
+            return new String(text.Where(c => char.IsDigit(c) || c == decimalSeparator || c == '-').ToArray());
+        }
 
         #region Compara cadenes. Per camps string del ERP.
 

@@ -32,8 +32,6 @@ namespace Controls
 
         #region *** Variables ***
 
-        public event EventHandler ValorChanged;
-
         private const int WM_PASTE = 0x0302;
 
         // Desa el format original de Text, abans d'aplicar el format.
@@ -49,10 +47,12 @@ namespace Controls
         private int vFerSelectAll;
 
         // És on deso el valor de Text en format decimal.
-        private Color? vForeCol;
-        private bool vEditant;
         private decimal vValor;
-        
+        private Color vForeColor;
+        private bool vTextModificat;
+        private bool vInhabilitaOnTextChanged; // L'activo per evitar l'execució de "OnTextChanged"
+        private Color vBackColorOrig;
+
         #endregion *** Variables ***
 
 
@@ -79,14 +79,19 @@ namespace Controls
         [Browsable(true)]
         public decimal Valor
         {
-            get
-            {
-                return vValor;
-            }            
+            get { return vValor; }
             set
             {
                 vValor = value;
+                
+                vInhabilitaOnTextChanged = true;
                 Text = value.ToString(_Format);
+                vInhabilitaOnTextChanged = false;
+
+                if (_NegatiusEnVermell && vValor < 0)
+                    base.ForeColor = Color.Red;
+                else
+                    base.ForeColor = vForeColor;
             }
         }
 
@@ -115,43 +120,7 @@ namespace Controls
         #region *** Mètodes ***
 
         /// <summary>
-        /// Elimina tots els caràctes no numèrics excepte '-' i ','.
-        /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
-        private static string EliminaCaracterNoNumerics(string text)
-        {
-            if (text == null)
-                return null;
-
-            return new String(text.Where(c => char.IsDigit(c) || c == DecimalSeparator || c == '-').ToArray());
-        }
-
-        /// <summary>
-        /// Canvia el color del valor.
-        /// </summary>
-        private void colorNumero()
-        {
-            if (_NegatiusEnVermell && Valor < 0)
-            {
-                if (ForeColor != Color.Red)
-                {
-                    // Deso si ForeColor actual no és Vermell.
-                    vForeCol = ForeColor;
-
-                    ForeColor = Color.Red;
-                }
-            }
-            else
-            {
-                ForeColor = vForeCol.GetValueOrDefault(Color.Black);
-            }
-        }
-
-
-        /// <summary>
         /// Retorna el text que no està seleccionat i inserta el text del paràmetre en la posició del cursor.
-        /// 
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
@@ -228,7 +197,7 @@ namespace Controls
             }
             return false;
         }
-        
+
         #endregion *** Mètodes ***
 
 
@@ -243,6 +212,16 @@ namespace Controls
             else
             {
                 base.WndProc(ref m);
+            }
+        }
+
+        public override Color ForeColor
+        {
+            get { return base.ForeColor; }
+            set
+            {
+                vForeColor = value;
+                base.ForeColor = value;
             }
         }
 
@@ -264,6 +243,19 @@ namespace Controls
                 // Shift+Insert fa el paste automàticament i es dispara "OnTextChanged" abans de OnKeyUp".
                 // Cancel·lo el Paste perquè el controlo des de "OnKeyUp".
                 e.SuppressKeyPress = true;
+            }
+        }
+
+        protected override void OnPreviewKeyDown(PreviewKeyDownEventArgs e)
+        {
+            base.OnPreviewKeyDown(e);
+
+            if (e.KeyCode == Keys.Enter)
+            {
+                // S'executa abans que AcceptButton s'activi automàticament
+                // Evitem que AcceptButton s'activi automàticament
+                //e.IsInputKey = true;
+                vValor = Utilitats.TextADecimal(Text);
             }
         }
 
@@ -325,30 +317,27 @@ namespace Controls
             }
         }
 
-
         protected override void OnTextChanged(EventArgs e)
         {
-            base.OnTextChanged(e);
+            if (vInhabilitaOnTextChanged)
+                return;
 
             // Posa el signe al principi.
             if (Text.Length > 0 && Text[0] != NegativeSign && Text.Contains(NegativeSign))
-                Text = NegativeSign + Text.Replace(NegativeSign.ToString(), String.Empty);
-            
-            // Canvia el color si fa falta
-            if (!vEditant)
-                colorNumero();
-
-            // Dispara l'event si fa falta
-            if (ValorChanged != null)
             {
-                ValorChanged(this, e);
+                vInhabilitaOnTextChanged = true;
+                Text = NegativeSign + Text.Replace(NegativeSign.ToString(), String.Empty);
+                vInhabilitaOnTextChanged = false;
             }
+
+            vTextModificat = true;
+
+            base.OnTextChanged(e);
         }
 
-        
         protected override void OnEnter(EventArgs e)
         {
-            base.OnEnter(e);
+            vTextModificat = false;
 
             if (ReadOnly)
             {
@@ -357,33 +346,73 @@ namespace Controls
             }
             else
             {
-                vEditant = true;
-
+                vInhabilitaOnTextChanged = true;
+               
                 // * No vull que surtin ceros a la dreta de la coma.
-                Text = vValor.ToString("0.###############", CultureInfo.InvariantCulture); 
+                Text = vValor.ToString("0.###############");
+                
+                vInhabilitaOnTextChanged = false;
 
-                ForeColor = vForeCol.GetValueOrDefault(Color.Black);
+                base.ForeColor = Color.Black;
             }
 
             vFerSelectAll = 5;
+
+            base.OnEnter(e);
         }
 
         protected override void OnLeave(EventArgs e)
         {
             base.OnLeave(e);
 
-            vEditant = false;
+            if (vTextModificat)
+                vValor = Utilitats.TextADecimal(Text);
+
+            vInhabilitaOnTextChanged = true;
 
             if (!_PermetTextNull && String.IsNullOrEmpty(Text))
                 Text = "0";
 
-            if (Valor == 0 && !Regex.IsMatch(Text, @"\d"))
-                // Si Valor = 0 i Text no te cap digit numèric, deixo Text buit. Ni 0 ni simbol de moneda.
+            if (vValor == 0 && !Regex.IsMatch(Text, @"\d"))
+                //*  Si vValor = 0 i Text no te cap digit numèric, deixo Text buit. Ni 0 ni simbol de moneda.
                 Text = String.Empty;
             else
-                Text = Valor.ToString(_Format);
+                Text = vValor.ToString(_Format);
 
-            colorNumero();
+            vInhabilitaOnTextChanged = false;
+
+            if (_NegatiusEnVermell && vValor < 0)
+                base.ForeColor = Color.Red;
+            else
+                base.ForeColor = vForeColor;
+        }
+
+        protected override void OnReadOnlyChanged(EventArgs e)
+        {
+            base.OnReadOnlyChanged(e);
+
+            if (!this.DesignMode) // Comprovació per evitar canvis en el dissenyador
+            {
+                if (ReadOnly && BackColor == SystemColors.Window)
+                {
+                    vBackColorOrig = BackColor;
+                    base.BackColor = Color.Gainsboro;
+                }
+                else
+                {
+                    base.BackColor = vBackColorOrig;
+                }
+            }
+        }
+
+        public override Color BackColor
+        {
+            get { return base.BackColor; }
+            set
+            {
+                vBackColorOrig = value;
+                base.BackColor = value;
+            }
         }
 
         protected override void OnMouseClick(MouseEventArgs e)
