@@ -26,7 +26,7 @@ namespace Controls
             var xx = BackColor;
             BackColor = Color.Blue;
             BackColor = xx;
-            BackColor = BackColor;
+            //BackColor = BackColor;
         }
 
 
@@ -48,6 +48,7 @@ namespace Controls
 
         // És on deso el valor de Text en format decimal.
         private decimal vValor;
+        
         private Color vForeColor;
         private bool vTextModificat;
         private bool vInhabilitaOnTextChanged; // L'activo per evitar l'execució de "OnTextChanged"
@@ -84,9 +85,7 @@ namespace Controls
             {
                 vValor = value;
                 
-                vInhabilitaOnTextChanged = true;
                 Text = value.ToString(_Format);
-                vInhabilitaOnTextChanged = false;
 
                 if (_NegatiusEnVermell && vValor < 0)
                     base.ForeColor = Color.Red;
@@ -140,7 +139,6 @@ namespace Controls
             return unselectedTextBefore + text + unselectedTextAfter;
         }
 
-
         /// <summary>
         /// Gestiona el Paste, fa les validacions.
         /// </summary>
@@ -189,9 +187,9 @@ namespace Controls
 
                 if (textFinal.Count(c => c == NegativeSign) > 1)
                     // Hi ha més d'un signe.
-                    Text = NegativeSign + textFinal.Replace("-", "");
+                    base.Text = NegativeSign + textFinal.Replace("-", "");
                 else
-                    Text = textFinal;
+                    base.Text = textFinal;
 
                 return true;
             }
@@ -203,6 +201,10 @@ namespace Controls
 
         #region *** Overrides ***
 
+        /// <summary>
+        /// Sobreescric per cridar el mètode 'HandlePaste'
+        /// </summary>
+        /// <param name="m"></param>
         protected override void WndProc(ref Message m)
         {
             if ((m.Msg == WM_PASTE))
@@ -215,6 +217,30 @@ namespace Controls
             }
         }
 
+        /// <summary>
+        /// Sobreescric per evitar que es processi 'OnTextChanged' quan es modifica Text.
+        /// </summary>
+        public override string Text
+        {
+            get { return base.Text; }
+            set
+            {
+                vInhabilitaOnTextChanged = true;
+                base.Text = value;
+                vInhabilitaOnTextChanged = false;
+            }
+        }
+
+        public override Color BackColor
+        {
+            get { return base.BackColor; }
+            set
+            {
+                vBackColorOrig = value;
+                base.BackColor = value;
+            }
+        }
+
         public override Color ForeColor
         {
             get { return base.ForeColor; }
@@ -222,6 +248,19 @@ namespace Controls
             {
                 vForeColor = value;
                 base.ForeColor = value;
+            }
+        }
+
+        protected override void OnPreviewKeyDown(PreviewKeyDownEventArgs e)
+        {
+            base.OnPreviewKeyDown(e);
+
+            if (e.KeyCode == Keys.Enter)
+            {
+                // S'executa abans que AcceptButton s'activi automàticament
+                // Evitem que AcceptButton s'activi automàticament
+                //e.IsInputKey = true;
+                vValor = Utilitats.TextADecimal(Text);
             }
         }
 
@@ -246,16 +285,25 @@ namespace Controls
             }
         }
 
-        protected override void OnPreviewKeyDown(PreviewKeyDownEventArgs e)
+        protected override void OnKeyUp(KeyEventArgs e)
         {
-            base.OnPreviewKeyDown(e);
+            base.OnKeyUp(e);
 
-            if (e.KeyCode == Keys.Enter)
+            // Ctrl+X Cut. (Shift+Supr ja ho fa sol)
+            if (e.KeyData == (Keys.X | Keys.Control))
             {
-                // S'executa abans que AcceptButton s'activi automàticament
-                // Evitem que AcceptButton s'activi automàticament
-                //e.IsInputKey = true;
-                vValor = Utilitats.TextADecimal(Text);
+                Cut();
+            }
+            // Ctrl+C Copy. (Ctrl+Insert ja ho fa sol)
+            if (e.KeyData == (Keys.C | Keys.Control))
+            {
+                Copy();
+            }
+            // Ctrl+V o Shift+Insert Paste.
+            if (e.KeyData == (Keys.V | Keys.Control)
+                || e.KeyData == (Keys.Insert | Keys.Shift))
+            {
+                e.Handled = HandlePaste();
             }
         }
 
@@ -295,28 +343,6 @@ namespace Controls
             }
         }
 
-        protected override void OnKeyUp(KeyEventArgs e)
-        {
-            base.OnKeyUp(e);
-
-            // Ctrl+X Cut. (Shift+Supr ja ho fa sol)
-            if (e.KeyData == (Keys.X | Keys.Control))
-            {
-                Cut();
-            }
-            // Ctrl+C Copy. (Ctrl+Insert ja ho fa sol)
-            if (e.KeyData == (Keys.C | Keys.Control))
-            {
-                Copy();
-            }
-            // Ctrl+V o Shift+Insert Paste.
-            if (e.KeyData == (Keys.V | Keys.Control)
-                || e.KeyData == (Keys.Insert | Keys.Shift))
-            {
-                e.Handled = HandlePaste();
-            }
-        }
-
         protected override void OnTextChanged(EventArgs e)
         {
             if (vInhabilitaOnTextChanged)
@@ -325,9 +351,7 @@ namespace Controls
             // Posa el signe al principi.
             if (Text.Length > 0 && Text[0] != NegativeSign && Text.Contains(NegativeSign))
             {
-                vInhabilitaOnTextChanged = true;
                 Text = NegativeSign + Text.Replace(NegativeSign.ToString(), String.Empty);
-                vInhabilitaOnTextChanged = false;
             }
 
             vTextModificat = true;
@@ -346,12 +370,8 @@ namespace Controls
             }
             else
             {
-                vInhabilitaOnTextChanged = true;
-               
                 // * No vull que surtin ceros a la dreta de la coma.
                 Text = vValor.ToString("0.###############");
-                
-                vInhabilitaOnTextChanged = false;
 
                 base.ForeColor = Color.Black;
             }
@@ -368,8 +388,6 @@ namespace Controls
             if (vTextModificat)
                 vValor = Utilitats.TextADecimal(Text);
 
-            vInhabilitaOnTextChanged = true;
-
             if (!_PermetTextNull && String.IsNullOrEmpty(Text))
                 Text = "0";
 
@@ -378,8 +396,6 @@ namespace Controls
                 Text = String.Empty;
             else
                 Text = vValor.ToString(_Format);
-
-            vInhabilitaOnTextChanged = false;
 
             if (_NegatiusEnVermell && vValor < 0)
                 base.ForeColor = Color.Red;
@@ -404,17 +420,7 @@ namespace Controls
                 }
             }
         }
-
-        public override Color BackColor
-        {
-            get { return base.BackColor; }
-            set
-            {
-                vBackColorOrig = value;
-                base.BackColor = value;
-            }
-        }
-
+        
         protected override void OnMouseClick(MouseEventArgs e)
         {
             base.OnMouseClick(e);
