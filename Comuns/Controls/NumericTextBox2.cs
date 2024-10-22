@@ -309,38 +309,42 @@ namespace Controls
 
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            base.OnKeyPress(e);
-
             if (e.KeyChar == GroupSeparator)
                 e.KeyChar = DecimalSeparator;
-
-            var textNoSeleccionat = this.textNoSeleccionat(null);
 
             if (Char.IsDigit(e.KeyChar))
             {
                 // Digits are OK
+                base.OnKeyPress(e);
+                return;
             }
-            else if (e.KeyChar == DecimalSeparator && _PermetDecimals && textNoSeleccionat.IndexOf(DecimalSeparator) == -1)
-            {
-                // Decimal separator is OK
-            }
-            else if (e.KeyChar.Equals(NegativeSign))
-            {
-                if (!_PermetNegatius || textNoSeleccionat.Contains(NegativeSign))
-                {
-                    // Si no permet negatius o ja conté signe, salta la pulsació
-                    e.Handled = true; // No escriu el signe
-                    // Negative sign is KO
-                }
-            }
-            else if (e.KeyChar == '\b')
+
+            if (e.KeyChar == '\b')
             {
                 // Backspace key is OK
+                base.OnKeyPress(e);
+                return;
             }
-            else
+
+            var textNoSeleccionat = this.textNoSeleccionat(null);
+
+            if (e.KeyChar == DecimalSeparator && _PermetDecimals && !textNoSeleccionat.Contains(DecimalSeparator))
             {
-                e.Handled = true; // El caracter no s'escriurà.
+                // Decimal separator is OK
+                base.OnKeyPress(e);
+                return;
             }
+
+            if (e.KeyChar.Equals(NegativeSign) && _PermetNegatius && !textNoSeleccionat.Contains(NegativeSign))
+            {
+                // Negative sign is OK
+                base.OnKeyPress(e);
+                return;
+            }
+
+            e.Handled = true; // El caracter no s'escriurà.
+
+            base.OnKeyPress(e);
         }
 
         protected override void OnTextChanged(EventArgs e)
@@ -348,10 +352,13 @@ namespace Controls
             if (vInhabilitaOnTextChanged)
                 return;
 
-            // Posa el signe al principi.
-            if (Text.Length > 0 && Text[0] != NegativeSign && Text.Contains(NegativeSign))
+            if (Text.Length > 1 && Text[0] != NegativeSign && Text.Contains(NegativeSign))
             {
+                // * Posa el signe al principi.
+
+                var sStart = SelectionStart; // * Desa la posició del cursor.
                 Text = NegativeSign + Text.Replace(NegativeSign.ToString(), String.Empty);
+                SelectionStart = sStart; // * Col·loca el cursor en posició inicial.
             }
 
             vTextModificat = true;
