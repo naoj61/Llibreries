@@ -51,8 +51,6 @@ namespace Controls
 
         protected override void OnEditingControlShowing(DataGridViewEditingControlShowingEventArgs e)
         {
-            base.OnEditingControlShowing(e);
-
             if (CurrentCell.OwningColumn is NumericTextBoxColumn2)
             {
                 // Obté el control d'edició actual
@@ -67,12 +65,12 @@ namespace Controls
             }
             else
                 vTextBoxEnEdicio = null;
+
+            base.OnEditingControlShowing(e);
         }
 
         protected override void OnCellBeginEdit(DataGridViewCellCancelEventArgs e)
         {
-            base.OnCellBeginEdit(e);
-
             // Si hi ha una fórmula guardada per aquesta cel·la, la restaurem per a l'edició
             CellPosition cellPos = new CellPosition(e.RowIndex, e.ColumnIndex);
             if (Formules.ContainsKey(cellPos))
@@ -81,12 +79,12 @@ namespace Controls
             }
 
             CurrentCell.Style.ForeColor = Color.Black;
+
+            base.OnCellBeginEdit(e);
         }
 
         protected override void OnCellEndEdit(DataGridViewCellEventArgs e)
         {
-            base.OnCellEndEdit(e);
-
             //if (vTextBoxEnEdicio != null)
             // Cancelem l'esdeveniment de validació de text numèric quan es produeix l'entrada
             //vTextBoxEnEdicio.KeyPress -= numericTextBox_KeyPress;
@@ -134,6 +132,8 @@ namespace Controls
                     }
                 }
             }
+
+            base.OnCellEndEdit(e);
         }
 
         /*
@@ -192,8 +192,6 @@ namespace Controls
 
         protected override void OnCellFormatting(DataGridViewCellFormattingEventArgs e)
         {
-            base.OnCellFormatting(e);
-
             var cell = this[e.ColumnIndex, e.RowIndex];
 
             if (cell.Value != null
@@ -206,6 +204,8 @@ namespace Controls
                 else
                     cell.Style.ForeColor = Color.Black;
             }
+
+            base.OnCellFormatting(e);
         }
 
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)
@@ -335,12 +335,12 @@ namespace Controls
 
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            base.OnKeyPress(e);
-
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != ',' && e.KeyChar != '.' && e.KeyChar != '-')
             {
                 e.Handled = true;
             }
+
+            base.OnKeyPress(e);
         }
     }
 
@@ -351,14 +351,14 @@ namespace Controls
     {
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            base.OnKeyPress(e);
-
             /*
              * Si e.Handled = true. Vol dir que no ha passat el filtre base, ara comprovo si passa el filtre Formula.
              * Si e.Handled = false. Vol dir que ha passat el filtre base, aquesta línia també donarà false.
              */
 
             e.Handled = e.Handled && e.KeyChar != '=' && e.KeyChar != '+' && e.KeyChar != '*' && e.KeyChar != '/';
+
+            base.OnKeyPress(e);
         }
     }
 

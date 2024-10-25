@@ -253,8 +253,6 @@ namespace Controls
 
         protected override void OnPreviewKeyDown(PreviewKeyDownEventArgs e)
         {
-            base.OnPreviewKeyDown(e);
-
             if (e.KeyCode == Keys.Enter)
             {
                 // S'executa abans que AcceptButton s'activi automàticament
@@ -262,12 +260,12 @@ namespace Controls
                 //e.IsInputKey = true;
                 vValor = Utilitats.TextADecimal(Text);
             }
+
+            base.OnPreviewKeyDown(e);
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyDown(e);
-
             if (e.KeyCode == Keys.Escape && _CapturaEscape)
             {
                 if (Modified)
@@ -283,12 +281,12 @@ namespace Controls
                 // Cancel·lo el Paste perquè el controlo des de "OnKeyUp".
                 e.SuppressKeyPress = true;
             }
+
+            base.OnKeyDown(e);
         }
 
         protected override void OnKeyUp(KeyEventArgs e)
         {
-            base.OnKeyUp(e);
-
             // Ctrl+X Cut. (Shift+Supr ja ho fa sol)
             if (e.KeyData == (Keys.X | Keys.Control))
             {
@@ -305,6 +303,8 @@ namespace Controls
             {
                 e.Handled = HandlePaste();
             }
+
+            base.OnKeyUp(e);
         }
 
         protected override void OnKeyPress(KeyPressEventArgs e)
@@ -390,8 +390,6 @@ namespace Controls
 
         protected override void OnLeave(EventArgs e)
         {
-            base.OnLeave(e);
-
             if (vTextModificat)
                 vValor = Utilitats.TextADecimal(Text);
 
@@ -408,12 +406,12 @@ namespace Controls
                 base.ForeColor = Color.Red;
             else
                 base.ForeColor = vForeColor;
+
+            base.OnLeave(e);
         }
 
         protected override void OnReadOnlyChanged(EventArgs e)
         {
-            base.OnReadOnlyChanged(e);
-
             if (!this.DesignMode) // Comprovació per evitar canvis en el dissenyador
             {
                 if (ReadOnly && BackColor == SystemColors.Window)
@@ -426,24 +424,26 @@ namespace Controls
                     base.BackColor = vBackColorOrig;
                 }
             }
+          
+            base.OnReadOnlyChanged(e);
         }
         
         protected override void OnMouseClick(MouseEventArgs e)
         {
-            base.OnMouseClick(e);
-
             if (vFerSelectAll > 0)
             {
                 SelectAll();
                 vFerSelectAll = 0;
             }
+           
+            base.OnMouseClick(e);
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            base.OnMouseMove(e);
-
             vFerSelectAll--;
+           
+            base.OnMouseMove(e);
         }
 
         #endregion *** Overrides ***
