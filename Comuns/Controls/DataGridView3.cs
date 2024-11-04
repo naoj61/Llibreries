@@ -236,7 +236,7 @@ namespace Controls
     /// </summary>
     public class NumericTextBoxColumn2 : DataGridViewTextBoxColumn
     {
-        public NumericTextBoxColumn2() : base()
+        public NumericTextBoxColumn2()
         {
             _NegatiusEnVermell = true;
 
@@ -264,7 +264,6 @@ namespace Controls
     public class NumericTextBoxColumn2F : NumericTextBoxColumn2
     {
         public NumericTextBoxColumn2F()
-            : base()
         {
             // Assegurar que només es permeten números en la cel·la
             this.CellTemplate = new NumericCell2F();
