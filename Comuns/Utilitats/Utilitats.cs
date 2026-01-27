@@ -57,16 +57,29 @@ namespace Comuns
             USD
         }
 
-
         public static FileInfo _FitxerLog
         {
-            get { 
-                var fitxer = new FileInfo(ConverteixVariablesEntornDeCadena(ConfigurationManager.AppSettings["FitxerLog"]));
+            get {
 
-                if(!fitxer.Directory.Exists)
+                var fitxer = new FileInfo(ExpandirPath(ConfigurationManager.AppSettings["FitxerLog"]));
+                
+                string nomFitxer = fitxer.Name;
+
+                if (!fitxer.Directory.Exists || String.IsNullOrEmpty(nomFitxer))
                 {
-                    var xx = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), fitxer.Name);
-                    fitxer = new FileInfo(xx);
+                    if (String.IsNullOrEmpty(nomFitxer))
+                    {
+                        nomFitxer = NomProcesActual() + ".log";
+                        string nouPath = Path.Combine(fitxer.DirectoryName, nomFitxer);
+                        fitxer = new FileInfo(nouPath);
+                    }
+
+                    if (!fitxer.Directory.Exists)
+                    {
+                        var nouDir = Environment.GetEnvironmentVariable("TEMP");
+                        string nouPath = Path.Combine(nouDir, fitxer.Name);
+                        fitxer = new FileInfo(nouPath);
+                    }
                 }
 
                 return fitxer;
@@ -440,10 +453,12 @@ namespace Comuns
         {
 
 #if DEBUG
-            directoriBd = ConverteixVariablesEntornDeCadena(Utilitats.LlegeixConfig("DirBdDebug"));
+            directoriBd = Utilitats.LlegeixConfig("DirBdDebug");
 #else
-            directoriBd = ConverteixVariablesEntornDeCadena(Utilitats.LlegeixConfig("DirBd"));
+            directoriBd = Utilitats.LlegeixConfig("DirBd");
 #endif
+
+            directoriBd = ExpandirPath(directoriBd);
 
             directoriBd = Path.GetFullPath(directoriBd);
 
@@ -453,7 +468,7 @@ namespace Comuns
 
                 if (!Directory.Exists(directoriBd) || (!String.IsNullOrEmpty(nomBd) && !File.Exists(Path.Combine(directoriBd, nomBd))))
                     // Llegeixo el directori de la Bd de la variable "DirBd" de "app.config".
-                    directoriBd = ConverteixVariablesEntornDeCadena(Utilitats.LlegeixConfig("DirBd"));
+                    directoriBd = ExpandirPath(Utilitats.LlegeixConfig("DirBd"));
 
                 if (!Directory.Exists(directoriBd) || (!String.IsNullOrEmpty(nomBd) && !File.Exists(Path.Combine(directoriBd, nomBd))))
                 {
@@ -940,6 +955,7 @@ namespace Comuns
         /// <returns></returns>
         public static FileInfo LlegeixFitxerLog()
         {
+            // Todo: Revisar el procés per trobar el nom del fitxer log.
             return LlegeixFitxerLog(NomProcesActual() + ".log");
         }
 
@@ -1199,34 +1215,24 @@ namespace Comuns
             }
         }
 
-
         /// <summary>
-        /// Si en text hi ha variables d'entorn (entre '%') les converteix al seu valor real.
+        /// Normalitza un path, expandint variables d'entorn i resolent ., .., etc.
         /// </summary>
-        /// <param name="text"></param>
+        /// <param name="pathNomFitxer"></param>
         /// <returns></returns>
-        public static string ConverteixVariablesEntornDeCadena(string text)
+        public static string ExpandirPath(string pathNomFitxer)
         {
-            if (text == null)
-                return null;
+            if (string.IsNullOrWhiteSpace(pathNomFitxer))
+                return pathNomFitxer;
 
-            var array = text.Split('%');
+            // Expandeix variables d'entorn com %LocalApplicationData%
+            string expandit = Environment.ExpandEnvironmentVariables(pathNomFitxer);
 
-            if (array.Length == 1)
-                return array[0];
-
-            string resultat = "";
-            if (array.Length > 1)
-            {
-                bool esVariableEntorn = false;
-                foreach (var elem in array)
-                {
-                    resultat += esVariableEntorn ? Environment.GetEnvironmentVariable(elem) : elem;
-                    esVariableEntorn = !esVariableEntorn;
-                }
-            }
-            return resultat;
+            // Normalitza el path (resol ., .., etc.)
+            return Path.GetFullPath(expandit);
         }
+
+
 
 #endregion *** Utilitats2 ***
     }
