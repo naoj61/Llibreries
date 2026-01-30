@@ -647,10 +647,8 @@ namespace Comuns
         /// <returns></returns>
         public static decimal TextADecimal(string text)
         {
-            decimal valorDecimal;
-            return decimal.TryParse(text, out valorDecimal) ? valorDecimal : 0;
+            return decimal.TryParse(text, NumberStyles.Currency, CultureInfo.CurrentCulture, out decimal valorDecimal) ? valorDecimal : 0;
         }
-
 
         /// <summary>
         /// Elimina tots els caràctes no numèrics excepte '-' i ','.
