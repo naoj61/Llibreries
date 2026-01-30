@@ -31,16 +31,6 @@ using Microsoft.Win32;
 
 namespace Comuns
 {
-    public class UtilitatsException : Exception
-    {
-        public UtilitatsException(Utilitats.Errors error) : base("Error Utilitats")
-        {
-            Error = error;
-        }
-
-        public readonly Utilitats.Errors Error;
-    }
-
     public class Utilitats
     {
         #region *** Utilitats1 ***
