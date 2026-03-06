@@ -9,7 +9,6 @@ namespace Comuns
     public class EodhdUserService
     {
         private static readonly string ApiKeyEODHD;
-        private static decimal? EuroDolar;
 
         static EodhdUserService()
         {
@@ -21,31 +20,22 @@ namespace Comuns
             BaseAddress = new Uri("https://eodhd.com/api/")
         };
 
-        /// <summary>
-        /// Recupera asíncronament el preu de tancament més recent per a l'ISIN especificat. Opcionalment, converteix el preu 
-        /// a euros utilitzant el tipus de canvi EUR/USD actual.
-        /// </summary>
-        /// <remarks>
-        /// Si es sol·licita la conversió a euros i el tipus de canvi EUR/USD no està ja disponible, 
-        /// el mètode recupera el tipus de canvi més recent abans de realitzar la conversió.
-        /// </remarks>
-        /// <param name="isin">El número d'identificació internacional de valors (ISIN) de l'actiu per al qual s'ha d'obtenir l'últim tancament
-        /// price.
-        /// </param>
-        /// <param name="convertirAEuro">A value indicating whether to convert the closing price to euros. 
-        /// If <see langword="true"/>, the price is converted using the latest available EUR/USD exchange rate.
-        /// </param>
-        /// <returns>A <see cref="decimal"/> representing the last closing price of the specified asset, or <see
-        /// langword="null"/> if the ISIN is not found or the price cannot be retrieved.</returns>
-        public static async Task<decimal?> GetLastCloseFromIsinAsync(string isin, bool convertirAEuro)
+        public static async Task<string[]> EstatEodHd()
         {
-            // EURUSD.FOREX
+            var searchResponsex = await http.GetStringAsync($"user?api_token={ApiKeyEODHD}");
 
-            if (convertirAEuro && !EuroDolar.HasValue)
-            {
-                EuroDolar = await GetLastCloseFromIsinAsync("EURUSD.FOREX", false);
-            }
+            string[] array = searchResponsex
+                .Replace("\"", "")   // elimina totes les cometes
+                .Replace("{", "")    // elimina {
+                .Replace("}", "")    // elimina }
+                .Replace(":", " : ") // separa : amb espais
+                .Split(',');
 
+            return array;
+        }
+
+        public static async Task<string> GetTicker(string isin)
+        {
             // 1️⃣ Buscar ticker
             var searchResponse = await http.GetStringAsync($"search/{isin}?api_token={ApiKeyEODHD}&fmt=json");
 
@@ -62,19 +52,34 @@ namespace Comuns
             string exchange = firstResult.GetProperty("Exchange").GetString();
 
             string ticker = $"{code}.{exchange}";
+        
+            return ticker;
+        }
 
+        /// <summary>
+        /// Recupera asíncronament el preu de tancament més recent per a l'ISIN especificat. Opcionalment, converteix el preu 
+        /// a euros utilitzant el tipus de canvi EUR/USD actual.
+        /// </summary>
+        /// <remarks>
+        /// Si es sol·licita la conversió a euros i el tipus de canvi EUR/USD no està ja disponible, 
+        /// el mètode recupera el tipus de canvi més recent abans de realitzar la conversió.
+        /// </remarks>
+        /// <param name="ticker">El número d'identificació internacional de valors (ISIN) de l'actiu per al qual s'ha d'obtenir l'últim tancament
+        /// price.
+        /// </param>
+        /// <returns>A <see cref="decimal"/> representing the last closing price of the specified asset, or <see
+        /// langword="null"/> if the ticker is not found or the price cannot be retrieved.</returns>
+        public static async Task<decimal?> GetLastCloseFromIsinAsync(string ticker)
+        {
             // 2️⃣ Obtenir last_close
             var closeResponse = await http.GetStringAsync($"eod/{ticker}?api_token={ApiKeyEODHD}&fmt=json&filter=last_close");
 
             if (decimal.TryParse(closeResponse, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal lastClose))
             {
-                lastClose = convertirAEuro ? lastClose / EuroDolar.Value : lastClose;
-
                 return lastClose;
             }
 
             return null;
         }
-
     }
 }

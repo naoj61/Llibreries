@@ -44,7 +44,8 @@ namespace Comuns
         public enum Monedes
         {
             EUR,
-            USD
+            USD,
+            DKK
         }
 
         public static FileInfo _FitxerLog
