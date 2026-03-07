@@ -1,11 +1,43 @@
 ﻿using System;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Comuns
 {
+    public class EodhdApiException : Exception
+    {
+        public HttpStatusCode StatusCode { get; }
+        public string? Endpoint { get; }
+        public string? RawResponse { get; }
+
+        public EodhdApiException(
+            string message,
+            HttpStatusCode statusCode,
+            string? endpoint = null,
+            string? rawResponse = null,
+            Exception? inner = null)
+            : base(message, inner)
+        {
+            StatusCode = statusCode;
+            Endpoint = endpoint;
+            RawResponse = rawResponse;
+        }
+
+        public override string ToString()
+        {
+            return
+                $"EODHD API Error\n" +
+                $"Status: {(int)StatusCode} ({StatusCode})\n" +
+                (Endpoint != null ? $"Endpoint: {Endpoint}\n" : "") +
+                (RawResponse != null ? $"Response: {RawResponse}\n" : "") +
+                $"Message: {Message}\n";
+        }
+    }
+
     public class EodhdUserService
     {
         private static readonly string ApiKeyEODHD;
@@ -22,38 +54,55 @@ namespace Comuns
 
         public static async Task<string[]> EstatEodHd()
         {
-            var searchResponsex = await http.GetStringAsync($"user?api_token={ApiKeyEODHD}");
+            string endpoint = $"user?api_token={ApiKeyEODHD}";
+            try
+            {
+                var searchResponsex = await http.GetStringAsync(endpoint);
 
-            string[] array = searchResponsex
-                .Replace("\"", "")   // elimina totes les cometes
-                .Replace("{", "")    // elimina {
-                .Replace("}", "")    // elimina }
-                .Replace(":", " : ") // separa : amb espais
-                .Split(',');
+                string[] array = searchResponsex
+                    .Replace("\"", "")   // elimina totes les cometes
+                    .Replace("{", "")    // elimina {
+                    .Replace("}", "")    // elimina }
+                    .Replace(":", " : ") // separa : amb espais
+                    .Split(',');
 
-            return array;
+                return array;
+            }
+            catch (Exception ex)
+            {
+                throw new EodhdApiException(ex.Message, 0, endpoint, null, ex);
+            }
         }
 
         public static async Task<string> GetTicker(string isin)
         {
-            // 1️⃣ Buscar ticker
-            var searchResponse = await http.GetStringAsync($"search/{isin}?api_token={ApiKeyEODHD}&fmt=json");
+            string endpoint = $"search/{isin}?api_token={ApiKeyEODHD}&fmt=json";
 
-            var searchJson = JsonDocument.Parse(searchResponse);
-
-            if (searchJson.RootElement.GetArrayLength() == 0)
+            try
             {
-                Console.WriteLine("ISIN no trobat a EODHD.");
-                return null;
+                // 1️⃣ Buscar ticker
+                var searchResponse = await http.GetStringAsync(endpoint);
+
+                var searchJson = JsonDocument.Parse(searchResponse);
+
+                if (searchJson.RootElement.GetArrayLength() == 0)
+                {
+                    Console.WriteLine("ISIN no trobat a EODHD.");
+                    return null;
+                }
+
+                var firstResult = searchJson.RootElement[0];
+                string code = firstResult.GetProperty("Code").GetString();
+                string exchange = firstResult.GetProperty("Exchange").GetString();
+
+                string ticker = $"{code}.{exchange}";
+
+                return ticker;
             }
-
-            var firstResult = searchJson.RootElement[0];
-            string code = firstResult.GetProperty("Code").GetString();
-            string exchange = firstResult.GetProperty("Exchange").GetString();
-
-            string ticker = $"{code}.{exchange}";
-        
-            return ticker;
+            catch (Exception ex)
+            {
+                throw new EodhdApiException(ex.Message, 0, endpoint, null, ex);
+            }
         }
 
         /// <summary>
@@ -71,8 +120,12 @@ namespace Comuns
         /// langword="null"/> if the ticker is not found or the price cannot be retrieved.</returns>
         public static async Task<decimal?> GetLastCloseFromIsinAsync(string ticker)
         {
+            string endpoint = $"eod/{ticker}?api_token={ApiKeyEODHD}&fmt=json&filter=last_close";
+
+            try
+            { 
             // 2️⃣ Obtenir last_close
-            var closeResponse = await http.GetStringAsync($"eod/{ticker}?api_token={ApiKeyEODHD}&fmt=json&filter=last_close");
+            var closeResponse = await http.GetStringAsync(endpoint);
 
             if (decimal.TryParse(closeResponse, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal lastClose))
             {
@@ -80,6 +133,11 @@ namespace Comuns
             }
 
             return null;
+            }
+            catch (Exception ex)
+            {
+                throw new EodhdApiException(ex.Message, 0, endpoint, null, ex);
+            }
         }
     }
 }
