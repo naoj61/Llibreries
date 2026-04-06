@@ -440,13 +440,19 @@ namespace Comuns
         /// </summary>
         /// <param name="directoriBd">Directori on està la base de dades</param>
         /// <param name="nomBd"></param>
-        public static string AssignaDataDirectory(string directoriBd = null, string nomBd = null)
+        public static void AssignaDataDirectory(string directoriBd = null, string nomBd = null)
         {
+            string missatgeError = String.Format("No s'ha trobat la base de dades en: {0}", Environment.NewLine);
 
+            if (String.IsNullOrEmpty(nomBd))
+                nomBd = Utilitats.LlegeixConfig("NomBaseDades");
+            
 #if DEBUG
-            directoriBd = Utilitats.LlegeixConfig("DirBdDebug");
+            if (String.IsNullOrEmpty(directoriBd))
+                directoriBd = Utilitats.LlegeixConfig("DirBdDebug");
 #else
-            directoriBd = Utilitats.LlegeixConfig("DirBd");
+            if (String.IsNullOrEmpty(directoriBd))
+                directoriBd = Utilitats.LlegeixConfig("DirBd");
 #endif
 
             directoriBd = ExpandirPath(directoriBd);
@@ -458,11 +464,17 @@ namespace Comuns
                 // *** Si no existeix la Bd en el directori indicat, la busco en altres llocs. ***
 
                 if (!Directory.Exists(directoriBd) || (!String.IsNullOrEmpty(nomBd) && !File.Exists(Path.Combine(directoriBd, nomBd))))
+                {
+                    missatgeError += String.Format("\"{0}\".{1}", Path.Combine(directoriBd, nomBd), Environment.NewLine);
+
                     // Llegeixo el directori de la Bd de la variable "DirBd" de "app.config".
                     directoriBd = ExpandirPath(Utilitats.LlegeixConfig("DirBd"));
+                }
 
                 if (!Directory.Exists(directoriBd) || (!String.IsNullOrEmpty(nomBd) && !File.Exists(Path.Combine(directoriBd, nomBd))))
                 {
+                    missatgeError += String.Format("\"{0}\".{1}", Path.Combine(directoriBd, nomBd), Environment.NewLine);
+
                     // Llegeixo el directori de la Bd a partir del de l'executable.
                     directoriBd = DirectoriAssembly(Assembly.GetExecutingAssembly());
 #if DEBUG
@@ -472,18 +484,24 @@ namespace Comuns
                     directoriBd = Path.Combine(directoriBd, "BD");
                 }
 
-                if (!Directory.Exists(directoriBd))
-                    throw new ArgumentException(String.Format("El directori de la Bd: \"{0}\" no existeix.", directoriBd));
+                if (!File.Exists(Path.Combine(directoriBd, nomBd)))
+                {
+                    missatgeError += String.Format("\"{0}\".{1}", Path.Combine(directoriBd, nomBd), Environment.NewLine);
+                    
+                    throw new ArgumentException(missatgeError);
+                }
+                //if (!Directory.Exists(directoriBd))
+                //    throw new ArgumentException(String.Format("El directori de la Bd: \"{0}\" no existeix.", directoriBd));
 
-                if (!String.IsNullOrEmpty(nomBd) && !File.Exists(Path.Combine(directoriBd, nomBd)))
-                    throw new ArgumentException(String.Format("La Bd: \"{0}\" no existeix en el directori: \"{1}\".", nomBd, directoriBd));
+                //if (!String.IsNullOrEmpty(nomBd) && !File.Exists(Path.Combine(directoriBd, nomBd)))
+                //    throw new ArgumentException(String.Format("La Bd: \"{0}\" no existeix en el directori: \"{1}\".", nomBd, directoriBd));
             }
 
             // Informa la variable |DataDirectory|, s'utilitza en App.config.
             // ***** A partir d'aquí, ja es pot accedir a la Bd *****
             AppDomain.CurrentDomain.SetData("DataDirectory", directoriBd);
 
-            return directoriBd;
+            //return directoriBd;
         }
 
 
