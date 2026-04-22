@@ -113,6 +113,12 @@ namespace Controls
         [Browsable(true)]
         public bool _CapturaEscape { get; set; }
 
+        [Browsable(false)]
+        public bool _Modificat
+        {
+            get { return vTextModificat; }
+        }
+        
         #endregion *** Atributs ***
 
 
@@ -230,7 +236,7 @@ namespace Controls
                 vInhabilitaOnTextChanged = false;
             }
         }
-
+        
         public override Color BackColor
         {
             get { return base.BackColor; }
