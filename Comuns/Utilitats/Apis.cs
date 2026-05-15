@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace Comuns
 {
@@ -254,7 +255,7 @@ namespace Comuns
         /// <returns>An array of strings containing the parsed user information from the EODHD API response. The array may be
         /// empty if the response contains no data.</returns>
         /// <exception cref="ExceptionEODHd">Thrown when an error occurs while retrieving or parsing the user information from the EODHD API.</exception>
-        
+
         public static async Task<string[]> EstatEodHd()
         {
             string endpoint = $"user?api_token={ApiKeyEODHD}";
@@ -309,13 +310,80 @@ namespace Comuns
         }
 
         /// <summary>
-        /// Recupera asíncronament el preu de tancament més recent per a l'ISIN especificat. Opcionalment, converteix el preu 
-        /// a euros utilitzant el tipus de canvi EUR/USD actual.
+        /// Recupera asíncronament el preu de tancament a la data per a l'ISIN especificat.
         /// </summary>
-        /// <remarks>
-        /// Si es sol·licita la conversió a euros i el tipus de canvi EUR/USD no està ja disponible, 
-        /// el mètode recupera el tipus de canvi més recent abans de realitzar la conversió.
-        /// </remarks>
+        /// <param name="ticker"></param>
+        /// <param name="dataConsulta"></param>
+        /// <returns></returns>
+        /// <exception cref="ExceptionApi"></exception>
+        public static async Task<decimal?> PreuTancamentEODHdPerData(string ticker, DateTime dataConsulta)
+        {
+            // 1️⃣ MIREM LA MEMÒRIA CAU PRIMER
+            decimal? valorMemoria = CacheApi.ObtenirValor(ticker, dataConsulta);
+            if (valorMemoria.HasValue)
+            {
+                // Si el tenim, el retornem immediatament i ens estalviem la crida a l'API!
+                return valorMemoria.Value;
+            }
+
+            // 1. Formatem la data com demana l'API (Any-Mes-Dia)
+            string dataStr = dataConsulta.ToString("yyyy-MM-dd");
+
+            // 2. Posem 'from' i 'to' amb la mateixa data per treure només aquell dia.
+            // Ja no ens serveix el filter=last_close aquí.
+            string endpoint = $"eod/{ticker}?api_token={ApiKeyEODHD}&fmt=json&from={dataStr}&to={dataStr}";
+
+            try
+            {
+                var jsonResponse = await http.GetStringAsync(endpoint);
+
+                // 3. Llegim el JSON de resposta
+                using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
+                {
+                    var root = doc.RootElement;
+
+                    // 4. Comprovem si l'array té com a mínim un element 
+                    // (Si demanes un dissabte, l'array vindrà buit [])
+                    if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() > 0)
+                    {
+                        // Agafem el primer element de l'array i busquem la propietat "close"
+                        var closeElement = root[0].GetProperty("close");
+
+                        if (closeElement.TryGetDecimal(out decimal closePrice))
+                        {
+                            // 3️⃣ DESEM EL NOU VALOR A LA CAU PER A LA PRÒXIMA VEGADA
+                            CacheApi.DesarValor(ticker, dataConsulta, closePrice);
+
+                            return closePrice;
+                        }
+                    }
+                }
+
+                // Si la borsa estava tancada (cap de setmana/festiu) o hi ha un error, retornem null
+                return null;
+            }
+            catch (Exception ex)
+            {
+                if(ex.Message.Contains("404"))
+                {
+                    // Si no troba el ticker o la data, retornem null (en comptes de llençar una excepció)
+                    throw new ExceptionApi(ex.Message, HttpStatusCode.NotFound, endpoint, null, ex);
+                }
+                
+                if(ex.Message.Contains("402"))
+                {
+                    // Si S'han superat el màxim de peticions.
+                    throw new ExceptionApi(ex.Message, HttpStatusCode.Unauthorized, endpoint, null, ex);
+                }
+                
+                throw new ExceptionApi(ex.Message, 0, endpoint, null, ex);
+            }
+        }
+
+
+        /// <summary>
+        /// Recupera asíncronament el preu de tancament més recent per a l'ISIN especificat.
+        /// </summary>
         /// <param name="ticker">El número d'identificació internacional de valors (ISIN) de l'actiu per al qual s'ha d'obtenir l'últim tancament
         /// price.
         /// </param>
