@@ -309,21 +309,26 @@ namespace Comuns
             }
         }
 
+
         /// <summary>
         /// Recupera asíncronament el preu de tancament a la data per a l'ISIN especificat.
         /// </summary>
         /// <param name="ticker"></param>
         /// <param name="dataConsulta"></param>
+        /// <param name="noCache"></param>
         /// <returns></returns>
         /// <exception cref="ExceptionApi"></exception>
-        public static async Task<decimal?> PreuTancamentEODHdPerData(string ticker, DateTime dataConsulta)
+        public static async Task<decimal?> PreuTancamentEODHdPerData(string ticker, DateTime dataConsulta, bool noCache)
         {
-            // 1️⃣ MIREM LA MEMÒRIA CAU PRIMER
-            decimal? valorMemoria = CacheApi.ObtenirValor(ticker, dataConsulta);
-            if (valorMemoria.HasValue)
+            if (!noCache)
             {
-                // Si el tenim, el retornem immediatament i ens estalviem la crida a l'API!
-                return valorMemoria.Value;
+                // 1️⃣ MIREM LA MEMÒRIA CAU PRIMER
+                decimal? valorMemoria = CacheApi.ObtenirValor(ticker, dataConsulta);
+                if (valorMemoria.HasValue)
+                {
+                    // Si el tenim, el retornem immediatament i ens estalviem la crida a l'API!
+                    return valorMemoria.Value;
+                } 
             }
 
             // 1. Formatem la data com demana l'API (Any-Mes-Dia)
