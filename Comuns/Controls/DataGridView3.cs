@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Comuns;
+using NCalc;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -8,8 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Comuns;
-using NCalc;
 
 namespace Controls
 {
@@ -32,7 +33,7 @@ namespace Controls
             {
                 if (obj is CellPosition)
                 {
-                    var other = (CellPosition) obj;
+                    var other = (CellPosition)obj;
                     return this.Row == other.Row && this.Column == other.Column;
                 }
                 return false;
@@ -46,6 +47,11 @@ namespace Controls
 
         private static readonly Dictionary<CellPosition, string> Formules = new Dictionary<CellPosition, string>(); // Guardem les fórmules per posició
         private TextBox vTextBoxEnEdicio;
+        public static readonly string CaractersTotsElsPossibles = "\b0123456789,.-+*/";
+        public static readonly string CaractersAcceptatsNomesUnCop = ",.";
+        public static readonly string CaractersAcceptatsNomesAlInici = "-+"; // Només si no s'accepten formules. Si s'accepten fórmules, el signe pot anar a qualsevol lloc.
+        public static readonly string CaractersAcceptatsNomesFormules = "*/";
+
 
         #region ***** Controla la edició de cel·les numèriques *****
 
@@ -60,7 +66,7 @@ namespace Controls
                 {
                     // Només apliquem la validació a les cel·les de columnes del tipus"NumericTextBoxColumn"
                     // Afegim un esdeveniment de validació de text numèric quan es produeix l'entrada
-                    //vTextBoxEnEdicio.KeyPress += numericTextBox_KeyPress;
+                    vTextBoxEnEdicio.KeyPress += numericTextBox_KeyPress;
                 }
             }
             else
@@ -88,7 +94,7 @@ namespace Controls
             //if (vTextBoxEnEdicio != null)
             // Cancelem l'esdeveniment de validació de text numèric quan es produeix l'entrada
             //vTextBoxEnEdicio.KeyPress -= numericTextBox_KeyPress;
-
+            
             var cell = this[e.ColumnIndex, e.RowIndex];
 
             if (cell.Value != null && cell.OwningColumn is NumericTextBoxColumn2)
@@ -136,7 +142,7 @@ namespace Controls
             base.OnCellEndEdit(e);
         }
 
-        /*
+
         private void numericTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!caracterValid(e.KeyChar, CurrentCell.ColumnIndex))
@@ -164,34 +170,52 @@ namespace Controls
         /// <param name="car"></param>
         /// <param name="columnIndex"></param>
         /// <returns></returns>
-        private bool caracterValid(char car, int columnIndex)
+        private bool caracterValid(char car, int? columnIndex = null)
         {
-            var col = (NumericTextBoxColumn2) Columns[columnIndex];
+            if (vTextBoxEnEdicio == null)
+                return true;
 
-            if (col._AcceptaFormules)
+            if (CaractersTotsElsPossibles.IndexOf(car) == -1)
+                return false; // S'ignora el caràcter
+
+            if (CaractersAcceptatsNomesUnCop.IndexOf(car) != -1 && vTextBoxEnEdicio.Text.Contains(car))
             {
-                if (!char.IsControl(car) && !char.IsDigit(car) && car != ',' && car != '.' && car != '-'
-                    && car != '=' && car != '+' && car != '*' && car != '/')
+                // Si és un caràcter que només es pot posar una vegada, comprovar si el text ja té aquest caràcter
+                return false; // S'ignora el caràcter
+            }
+
+            if (!columnIndex.HasValue)
+                return true; // No valido cararcteristiques si no hi ha columna vàlida.
+
+            var col = (NumericTextBoxColumn2)Columns[columnIndex.Value];
+
+            if (!col._AcceptaFormules)
+            {
+                if (CaractersAcceptatsNomesAlInici.IndexOf(car) != -1)
+                {
+                    // Si és un caràcter que només es pot posar al principi, comprovar si el text ja té algun caràcter
+                    if (vTextBoxEnEdicio.SelectionStart > 0)
+                    {
+                        return false; // S'ignora el caràcter
+                    }
+                }
+                if (CaractersAcceptatsNomesFormules.IndexOf(car) != -1)
                 {
                     return false; // S'ignora el caràcter
                 }
             }
-            else
-            {
-                if (!char.IsControl(car) && !char.IsDigit(car) && car != ',' && car != '.' && car != '-')
-                {
-                    return false; // S'ignora el caràcter
-                }
-            }
+
             return true;
         }
-        */
 
         #endregion ***** Controla la edició de cel·les numèriques *****
 
 
         protected override void OnCellFormatting(DataGridViewCellFormattingEventArgs e)
         {
+            if(e.RowIndex < 0 || e.ColumnIndex < 0)
+                return;
+
             var cell = this[e.ColumnIndex, e.RowIndex];
 
             if (cell.Value != null
@@ -199,7 +223,7 @@ namespace Controls
             {
                 decimal retNum;
                 var esNumeric = Decimal.TryParse(Convert.ToString(cell.Value), NumberStyles.Number, NumberFormatInfo.InvariantInfo, out retNum);
-                if (esNumeric && retNum < 0 && ((NumericTextBoxColumn2) this.Columns[e.ColumnIndex])._NegatiusEnVermell)
+                if (esNumeric && retNum < 0 && ((NumericTextBoxColumn2)this.Columns[e.ColumnIndex])._NegatiusEnVermell)
                     cell.Style.ForeColor = Color.Red;
                 else
                     cell.Style.ForeColor = Color.Black;
@@ -247,12 +271,15 @@ namespace Controls
         [Browsable(true), DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public bool _NegatiusEnVermell { get; set; }
 
+        [Browsable(true), DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        public bool _AcceptaFormules { get; set; }
+
         public override object Clone()
         {
-            var clone = (NumericTextBoxColumn2) base.Clone();
-            
-// ReSharper disable once PossibleNullReferenceException
+            var clone = (NumericTextBoxColumn2)base.Clone();
+
             clone._NegatiusEnVermell = this._NegatiusEnVermell;
+            clone._AcceptaFormules = this._AcceptaFormules;
 
             return clone;
         }
@@ -278,12 +305,12 @@ namespace Controls
     {
         public override Type EditType
         {
-            get { return typeof (NumericEditingControl2); }
+            get { return typeof(NumericEditingControl2); }
         }
 
         public override Type ValueType
         {
-            get { return typeof (decimal); }
+            get { return typeof(decimal); }
         }
 
         public override object DefaultNewRowValue
@@ -299,12 +326,12 @@ namespace Controls
     {
         public override Type EditType
         {
-            get { return typeof (NumericEditingControl2F); }
+            get { return typeof(NumericEditingControl2F); }
         }
 
         public override Type ValueType
         {
-            get { return typeof (string); }
+            get { return typeof(string); }
         }
     }
 
@@ -334,9 +361,9 @@ namespace Controls
 
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != ',' && e.KeyChar != '.' && e.KeyChar != '-')
+            if (DataGridView3.CaractersTotsElsPossibles.IndexOf(e.KeyChar) == -1)
             {
-                e.Handled = true;
+                e.Handled = true; // S'ignora el caràcter
             }
 
             base.OnKeyPress(e);
