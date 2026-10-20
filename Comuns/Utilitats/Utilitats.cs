@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Comuns.Properties;
+using Controls;
+using Microsoft.Win32;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Core.EntityClient;
 using System.Data.Entity.Validation;
@@ -25,9 +29,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Comuns.Properties;
-using Controls;
-using Microsoft.Win32;
 
 namespace Comuns
 {
@@ -50,10 +51,11 @@ namespace Comuns
 
         public static FileInfo _FitxerLog
         {
-            get {
+            get
+            {
 
                 var fitxer = new FileInfo(ExpandirPath(ConfigurationManager.AppSettings["FitxerLog"]));
-                
+
                 string nomFitxer = fitxer.Name;
 
                 if (!fitxer.Directory.Exists || String.IsNullOrEmpty(nomFitxer))
@@ -92,7 +94,7 @@ namespace Comuns
             {
                 try
                 {
-                    string numSerie = (string) share.Properties["SerialNumber"].Value;
+                    string numSerie = (string)share.Properties["SerialNumber"].Value;
                     numS.Add(numSerie);
                 }
                 catch (Exception)
@@ -117,7 +119,7 @@ namespace Comuns
             {
                 try
                 {
-                    string numSerie = (string) share.Properties["MACAddress"].Value;
+                    string numSerie = (string)share.Properties["MACAddress"].Value;
                     if (!String.IsNullOrEmpty(numSerie))
                     {
                         numS.Add(numSerie);
@@ -233,7 +235,7 @@ namespace Comuns
         {
             //http://weblogs.asp.net/fmarguerie/archive/2008/01/02/rethrowing-exceptions-and-preserving-the-full-call-stack-trace.aspx
 
-            MethodInfo preserveStackTrace = typeof (Exception).GetMethod("InternalPreserveStackTrace",
+            MethodInfo preserveStackTrace = typeof(Exception).GetMethod("InternalPreserveStackTrace",
                 BindingFlags.Instance | BindingFlags.NonPublic);
             preserveStackTrace.Invoke(exception, null);
         }
@@ -374,7 +376,7 @@ namespace Comuns
             var ampladaRowHeader = dataGridView.RowHeadersVisible ? dataGridView.RowHeadersWidth : 0;
             var ampladaColumnes = dataGridView.Columns.Cast<DataGridViewColumn>().Where(w => w.Visible).Sum(column => column.Width);
             var ampladaTotal = ampladaVertScrollBar + ampladaRowHeader + ampladaColumnes + 3;
-            
+
             dataGridView.Width = ampladaTotal;
 
             return ampladaTotal;
@@ -446,7 +448,7 @@ namespace Comuns
 
             if (String.IsNullOrEmpty(nomBd))
                 nomBd = Utilitats.LlegeixConfig("NomBaseDades");
-            
+
 #if DEBUG
             if (String.IsNullOrEmpty(directoriBd))
                 directoriBd = Utilitats.LlegeixConfig("DirBdDebug");
@@ -487,7 +489,7 @@ namespace Comuns
                 if (!File.Exists(Path.Combine(directoriBd, nomBd)))
                 {
                     missatgeError += String.Format("\"{0}\".{1}", Path.Combine(directoriBd, nomBd), Environment.NewLine);
-                    
+
                     throw new ArgumentException(missatgeError);
                 }
                 //if (!Directory.Exists(directoriBd))
@@ -532,7 +534,7 @@ namespace Comuns
             if (ex.InnerException == null)
                 return ex;
             else
-                 return ExtreuInnerException(ex.InnerException);
+                return ExtreuInnerException(ex.InnerException);
         }
 
 
@@ -650,6 +652,48 @@ namespace Comuns
         }
 
         /// <summary>
+        /// Valida si una expressió numèrica o matemàtica és sintàcticament correcta després de la normalització.
+        /// </summary>
+        /// <remarks>La normalització elimina els símbols de moneda, els espais en blanc i els separadors de milers, i
+        /// converteix les comes decimals en punts («.») abans de l'avaluació mitjançant System.Data.DataTable.Compute. 
+        /// Els errors d'avaluació es detecten i es tracten com a fallades de validació. La semàntica de la validació depèn 
+        /// de la sintaxi d'expressions de DataTable i pot no ser adequada per a l'execució d'entrades que no siguin 
+        /// de confiança.
+        /// </remarks>
+        /// <param name="formula">Expressió que s'ha de validar; pot incloure símbols de moneda (per exemple, €), 
+        /// espais en blanc, separadors de milers («.») o comes com a separadors decimals.
+        /// </param>
+        /// <returns>Retorna «true» si l'expressió normalitzada es pot avaluar correctament, 
+        /// o si l'entrada és nul·la o consisteix només en espais en blanc; en cas contrari, retorna «false».
+        /// </returns>
+        public static bool EsFormulaValida(string formula, out decimal resultat)
+        {
+            resultat = 0;
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(formula))
+                    return false;
+
+                // 1. Netejem la cadena de text pas a pas
+                string formulaNeta = formula
+                    .Replace("€", "")    // Eliminem l'euro (pots afegir-ne més si cal com "$")
+                    .Replace(" ", "")    // Eliminem els espais en blanc
+                    .Replace(".", "")    // Eliminem els punts dels milers (3.000 -> 3000)
+                    .Replace(",", ".");  // Convertim la coma decimal en punt informàtic (3000,2 -> 3000.2)
+
+                // 2. Avaluem la fórmula neta
+                resultat = Convert.ToDecimal(new DataTable().Compute(formulaNeta, null));
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Converteix text a decimal
         /// </summary>
         /// <param name="text"></param>
@@ -668,7 +712,7 @@ namespace Comuns
         {
             if (text == null)
                 return null;
-        
+
             char decimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
 
             return new String(text.Where(c => char.IsDigit(c) || c == decimalSeparator || c == '-').ToArray());
@@ -919,7 +963,7 @@ namespace Comuns
             Configuration myDllConfig = ConfigurationManager.OpenExeConfiguration(pathFitxerConfig);
 
             //// Get the appSettings section
-            AppSettingsSection myDllConfigAppSettings = (AppSettingsSection) myDllConfig.GetSection("appSettings");
+            AppSettingsSection myDllConfigAppSettings = (AppSettingsSection)myDllConfig.GetSection("appSettings");
 
             var llistaElements = myDllConfigAppSettings.Settings[clau];
             return llistaElements == null ? null : llistaElements.Value;
@@ -1155,7 +1199,7 @@ namespace Comuns
             }
             else
             {
-                    missatgeFinestra += "\n" + text;
+                missatgeFinestra += "\n" + text;
 
                 if (missatgeFinestra != null)
                     MessageBox.Show(missatgeFinestra, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -1241,7 +1285,7 @@ namespace Comuns
 
 
 
-#endregion *** Utilitats2 ***
+        #endregion *** Utilitats2 ***
     }
 
 

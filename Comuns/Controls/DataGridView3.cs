@@ -1,15 +1,9 @@
 ﻿using Comuns;
-using NCalc;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Controls
@@ -18,15 +12,23 @@ namespace Controls
     {
         private struct CellPosition
         {
-            public int Row { get; set; }
-            public int Column { get; set; }
-
             public CellPosition(int row, int column)
                 : this()
             {
                 Row = row;
                 Column = column;
             }
+
+            public CellPosition(DataGridViewCell cell)
+                : this()
+            {
+                Row = cell.RowIndex;
+                Column = cell.ColumnIndex;
+            }
+
+            public int Row { get; set; }
+            public int Column { get; set; }
+
 
             // Sobreescrivim GetHashCode i Equals perquè funcioni correctament com a clau del diccionari
             public override bool Equals(object obj)
@@ -45,124 +47,14 @@ namespace Controls
             }
         }
 
-        private static readonly Dictionary<CellPosition, string> Formules = new Dictionary<CellPosition, string>(); // Guardem les fórmules per posició
+        private DataGridViewCellStyle vOriginalCellStyle;
         private TextBox vTextBoxEnEdicio;
+        private static readonly Dictionary<CellPosition, string> Formules = new(); // Guardem les fórmules per posició
         public static readonly string CaractersTotsElsPossibles = "\b0123456789,.-+*/";
         public static readonly string CaractersAcceptatsNomesUnCop = ",.";
         public static readonly string CaractersAcceptatsNomesAlInici = "-+"; // Només si no s'accepten formules. Si s'accepten fórmules, el signe pot anar a qualsevol lloc.
         public static readonly string CaractersAcceptatsNomesFormules = "*/";
 
-
-        #region ***** Controla la edició de cel·les numèriques *****
-
-        protected override void OnEditingControlShowing(DataGridViewEditingControlShowingEventArgs e)
-        {
-            if (CurrentCell.OwningColumn is NumericTextBoxColumn2)
-            {
-                // Obté el control d'edició actual
-                vTextBoxEnEdicio = e.Control as TextBox;
-
-                if (vTextBoxEnEdicio != null)
-                {
-                    // Només apliquem la validació a les cel·les de columnes del tipus"NumericTextBoxColumn"
-                    // Afegim un esdeveniment de validació de text numèric quan es produeix l'entrada
-                    vTextBoxEnEdicio.KeyPress += numericTextBox_KeyPress;
-                }
-            }
-            else
-                vTextBoxEnEdicio = null;
-
-            base.OnEditingControlShowing(e);
-        }
-
-        protected override void OnCellBeginEdit(DataGridViewCellCancelEventArgs e)
-        {
-            // Si hi ha una fórmula guardada per aquesta cel·la, la restaurem per a l'edició
-            CellPosition cellPos = new CellPosition(e.RowIndex, e.ColumnIndex);
-            if (Formules.ContainsKey(cellPos))
-            {
-                Rows[e.RowIndex].Cells[e.ColumnIndex].Value = Formules[cellPos];
-            }
-
-            CurrentCell.Style.ForeColor = Color.Black;
-
-            base.OnCellBeginEdit(e);
-        }
-
-        protected override void OnCellEndEdit(DataGridViewCellEventArgs e)
-        {
-            //if (vTextBoxEnEdicio != null)
-            // Cancelem l'esdeveniment de validació de text numèric quan es produeix l'entrada
-            //vTextBoxEnEdicio.KeyPress -= numericTextBox_KeyPress;
-            
-            var cell = this[e.ColumnIndex, e.RowIndex];
-
-            if (cell.Value != null && cell.OwningColumn is NumericTextBoxColumn2)
-            {
-                string cellValue = cell.Value.ToString();
-
-                if (cellValue.StartsWith("=") || cellValue.StartsWith("+") || cellValue.StartsWith("-") || Char.IsDigit(cellValue[0]))
-                {
-                    // Guardem la fórmula
-                    CellPosition cellPos = new CellPosition(e.RowIndex, e.ColumnIndex);
-                    Formules[cellPos] = cellValue;
-
-                    try
-                    {
-                        string expression = cellValue;
-
-                        if (cellValue.StartsWith("=") || cellValue.StartsWith("+"))
-                            expression = expression.Substring(1); // Treu el signe "=" o "+".
-
-                        expression = expression.Replace(',', '.'); // Converteix la comma en punt.
-
-                        Expression formula = new Expression(expression);
-                        var result = Convert.ToDecimal(formula.Evaluate());
-                        Rows[e.RowIndex].Cells[e.ColumnIndex].Value = result;
-                        Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = String.Empty;
-
-                        cell.Style.ForeColor = Convert.ToDecimal(cell.Value) < 0 ? Color.Red : Color.Black;
-                    }
-                    catch (Exception ex)
-                    {
-                        Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "#Error";
-                    }
-                }
-                else
-                {
-                    // Si no és una fórmula, eliminem el valor guardat
-                    CellPosition cellPos = new CellPosition(e.RowIndex, e.ColumnIndex);
-                    if (Formules.ContainsKey(cellPos))
-                    {
-                        Formules.Remove(cellPos);
-                    }
-                }
-            }
-
-            base.OnCellEndEdit(e);
-        }
-
-
-        private void numericTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (!caracterValid(e.KeyChar, CurrentCell.ColumnIndex))
-            {
-                e.Handled = true; // S'ignora el caràcter
-            }
-
-            if (e.KeyChar == '.')
-                e.KeyChar = ','; // Converteix el punt en coma
-
-            // Només permetem una coma decimal
-            if (e.KeyChar == ',')
-            {
-                TextBox textBox = sender as TextBox;
-                if (textBox != null && textBox.Text.Contains(","))
-                {
-                    e.Handled = true; // S'ignora la coma si ja existeix una
-                }
-            }
-        }
 
         /// <summary>
         /// Comprova si s'accepta el caracter.
@@ -178,14 +70,19 @@ namespace Controls
             if (CaractersTotsElsPossibles.IndexOf(car) == -1)
                 return false; // S'ignora el caràcter
 
-            if (CaractersAcceptatsNomesUnCop.IndexOf(car) != -1 && vTextBoxEnEdicio.Text.Contains(car))
-            {
-                // Si és un caràcter que només es pot posar una vegada, comprovar si el text ja té aquest caràcter
+            // Si el caràcter és un dels que només es poden posar una vegada,
+            // comprovar si ja hi ha algun d'aquests caràcters al text actual
+            // i si el text seleccionat no conté cap d'aquests caràcters.
+            if (CaractersAcceptatsNomesUnCop.IndexOf(car) != -1
+                && vTextBoxEnEdicio.Text.IndexOfAny(CaractersAcceptatsNomesUnCop.ToCharArray()) != -1
+                && vTextBoxEnEdicio.SelectedText.IndexOfAny(CaractersAcceptatsNomesUnCop.ToCharArray()) == -1)
                 return false; // S'ignora el caràcter
-            }
+
+
+            // *** No valido la resta de cararcteristiques si no hi ha columna vàlida.
 
             if (!columnIndex.HasValue)
-                return true; // No valido cararcteristiques si no hi ha columna vàlida.
+                return true;
 
             var col = (NumericTextBoxColumn2)Columns[columnIndex.Value];
 
@@ -208,22 +105,87 @@ namespace Controls
             return true;
         }
 
-        #endregion ***** Controla la edició de cel·les numèriques *****
 
+        #region ***** Controla la edició de cel·les numèriques *****
+
+        private void numericTextBoxEnEdicio_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '.' || e.KeyChar == ',')
+            {
+                // Converteix el punt o la coma en el separador decimal actual
+                e.KeyChar = NumberFormatInfo.CurrentInfo.NumberDecimalSeparator[0];
+            }
+
+            if (!caracterValid(e.KeyChar, CurrentCell.ColumnIndex))
+            {
+                e.Handled = true; // S'ignora el caràcter
+            }
+        }
+
+        protected override void OnEditingControlShowing(DataGridViewEditingControlShowingEventArgs e)
+        {
+            if (CurrentCell.OwningColumn is NumericTextBoxColumn2)
+            {
+                // Obté el control d'edició actual
+                vTextBoxEnEdicio = e.Control as TextBox;
+
+                if (vTextBoxEnEdicio != null)
+                {
+                    // Només apliquem la validació a les cel·les de columnes del tipus"NumericTextBoxColumn"
+                    // Afegim un esdeveniment de validació de text numèric quan es produeix l'entrada
+                    vTextBoxEnEdicio.KeyPress += numericTextBoxEnEdicio_KeyPress;
+
+                    CellPosition cellPos = new(CurrentCell);
+                    if (Formules.ContainsKey(cellPos))
+                    {
+                        vTextBoxEnEdicio.Text = Formules[cellPos];
+                    }
+                }
+            }
+            else
+                vTextBoxEnEdicio = null;
+
+            base.OnEditingControlShowing(e);
+        }
+
+        protected override void OnCellBeginEdit(DataGridViewCellCancelEventArgs e)
+        {
+            vOriginalCellStyle = CurrentCell.Style.Clone();
+            CurrentCell.Style.ForeColor = Color.Black;
+            CurrentCell.Style.Format = "G29";
+
+            base.OnCellBeginEdit(e);
+        }
+
+        protected override void OnCellEndEdit(DataGridViewCellEventArgs e)
+        {
+            var cell = this[e.ColumnIndex, e.RowIndex];
+
+            if (cell.OwningColumn is NumericTextBoxColumn2 col)
+            {
+                // Si vTextBoxEnEdicio != null, cancel·lem l'esdeveniment de validació de text numèric quan es produeix l'entrada
+                //col.vTextBoxEnEdicio?.KeyPress -= numericTextBoxEnEdicio_KeyPress;
+
+                // Restauro l'estil de la cel·la a l'original abans de formatar-la
+                cell.Style = vOriginalCellStyle;
+            }
+
+            base.OnCellEndEdit(e);
+        }
 
         protected override void OnCellFormatting(DataGridViewCellFormattingEventArgs e)
         {
-            if(e.RowIndex < 0 || e.ColumnIndex < 0)
+            if (e.RowIndex < 0 || e.ColumnIndex < 0)
                 return;
 
             var cell = this[e.ColumnIndex, e.RowIndex];
 
-            if (cell.Value != null
-                && cell.OwningColumn is NumericTextBoxColumn2 && cell.ErrorText == String.Empty)
+            if (cell.Value != null && cell.OwningColumn is NumericTextBoxColumn2 && cell.ErrorText == String.Empty)
             {
-                decimal retNum;
-                var esNumeric = Decimal.TryParse(Convert.ToString(cell.Value), NumberStyles.Number, NumberFormatInfo.InvariantInfo, out retNum);
-                if (esNumeric && retNum < 0 && ((NumericTextBoxColumn2)this.Columns[e.ColumnIndex])._NegatiusEnVermell)
+                var esNumeric = Decimal.TryParse(Convert.ToString(cell.Value), NumberStyles.Number
+                    , NumberFormatInfo.InvariantInfo, out decimal retNum);
+
+                if (esNumeric && retNum < 0 && ((NumericTextBoxColumn2)cell.OwningColumn)._NegatiusEnVermell)
                     cell.Style.ForeColor = Color.Red;
                 else
                     cell.Style.ForeColor = Color.Black;
@@ -232,11 +194,42 @@ namespace Controls
             base.OnCellFormatting(e);
         }
 
+        protected override void OnCellParsing(DataGridViewCellParsingEventArgs e)
+        {
+            DataGridViewCell cela = this[e.ColumnIndex, e.RowIndex];
+
+            if (cela.OwningColumn is NumericTextBoxColumn2 column && column._AcceptaFormules)
+            {
+                // 2. Agafem el que ha escrit l'usuari (ex: "5 + 3")
+                string textIntroduit = e.Value?.ToString();
+
+                // 3. Comprovem si és una fórmula vàlida (ex: "5 + 3" -> 8)
+                var celPos = new CellPosition(e.RowIndex, e.ColumnIndex);
+                if (Utilitats.EsFormulaValida(textIntroduit, out decimal resultat))
+                {
+                    Formules[celPos] = textIntroduit; // Guardem la fórmula per a aquesta cel·la
+
+                    // 6. LA MÀGIA: Substituïm el "5 + 3" pel "8"
+                    e.Value = resultat;
+
+                    // 7. Avisem al DataGridView que ja hem fet nosaltres la feina i que no cal que faci res més
+                    e.ParsingApplied = true;
+                }
+                else
+                {
+                    // Si no és una fórmula vàlida, eliminem qualsevol fórmula guardada per a aquesta cel·la
+                    Formules.Remove(celPos);
+                }
+            }
+
+            base.OnCellParsing(e);
+        }
+
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)
         {
             DataGridViewCell cella = this[e.ColumnIndex, e.RowIndex];
 
-            if (e.Exception is FormatException && cella.OwningColumn is NumericTextBoxColumn2) // && cella.ValueType.EsTipusNumeric())
+            if (e.Exception is FormatException && cella.OwningColumn is NumericTextBoxColumn2)
             {
                 // Aquí pots gestionar l'error de dades com vulguis
                 MessageBox.Show("Error de dades: " + e.Exception.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -250,6 +243,9 @@ namespace Controls
                 base.OnDataError(displayErrorDialogIfNoHandler, e);
             }
         }
+
+        #endregion ***** Controla la edició de cel·les numèriques *****
+
     }
 
 
@@ -263,6 +259,7 @@ namespace Controls
         public NumericTextBoxColumn2()
         {
             _NegatiusEnVermell = true;
+            _AcceptaFormules = false;
 
             // Assegurar que només es permeten números en la cel·la
             this.CellTemplate = new NumericCell2();
@@ -282,18 +279,6 @@ namespace Controls
             clone._AcceptaFormules = this._AcceptaFormules;
 
             return clone;
-        }
-    }
-
-    /// <summary>
-    /// DataGridViewTextBoxColumn per cel·les numériques que admeten fómules.
-    /// </summary>
-    public class NumericTextBoxColumn2F : NumericTextBoxColumn2
-    {
-        public NumericTextBoxColumn2F()
-        {
-            // Assegurar que només es permeten números en la cel·la
-            this.CellTemplate = new NumericCell2F();
         }
     }
 
@@ -320,22 +305,6 @@ namespace Controls
     }
 
     /// <summary>
-    /// DataGridViewTextBoxCell per cel·les numériques que admeten fómules.
-    /// </summary>
-    public class NumericCell2F : NumericCell2
-    {
-        public override Type EditType
-        {
-            get { return typeof(NumericEditingControl2F); }
-        }
-
-        public override Type ValueType
-        {
-            get { return typeof(string); }
-        }
-    }
-
-    /// <summary>
     /// DataGridViewTextBoxEditingControl per cel·les numériques.
     /// </summary>
     public class NumericEditingControl2 : DataGridViewTextBoxEditingControl
@@ -358,36 +327,7 @@ namespace Controls
                     return false;
             }
         }
-
-        protected override void OnKeyPress(KeyPressEventArgs e)
-        {
-            if (DataGridView3.CaractersTotsElsPossibles.IndexOf(e.KeyChar) == -1)
-            {
-                e.Handled = true; // S'ignora el caràcter
-            }
-
-            base.OnKeyPress(e);
-        }
-    }
-
-    /// <summary>
-    /// DataGridViewTextBoxEditingControl per cel·les numériques que admeten fómules.
-    /// </summary>
-    public class NumericEditingControl2F : NumericEditingControl2
-    {
-        protected override void OnKeyPress(KeyPressEventArgs e)
-        {
-            /*
-             * Si e.Handled = true. Vol dir que no ha passat el filtre base, ara comprovo si passa el filtre Formula.
-             * Si e.Handled = false. Vol dir que ha passat el filtre base, aquesta línia també donarà false.
-             */
-
-            e.Handled = e.Handled && e.KeyChar != '=' && e.KeyChar != '+' && e.KeyChar != '*' && e.KeyChar != '/';
-
-            base.OnKeyPress(e);
-        }
     }
 
     #endregion
-
 }
