@@ -647,8 +647,7 @@ namespace Comuns
         /// <returns></returns>
         public static bool EsNumeric(object expresio)
         {
-            decimal retNum;
-            return Decimal.TryParse(Convert.ToString(expresio), NumberStyles.Any, NumberFormatInfo.InvariantInfo, out retNum);
+            return Decimal.TryParse(Convert.ToString(expresio), NumberStyles.Any, NumberFormatInfo.InvariantInfo, result: out _);
         }
 
         /// <summary>

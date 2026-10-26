@@ -90,8 +90,13 @@ namespace Controls
             {
                 if (CaractersAcceptatsNomesAlInici.IndexOf(car) != -1)
                 {
-                    // Si és un caràcter que només es pot posar al principi, comprovar si el text ja té algun caràcter
+                    // Si el caràcter és un dels que només es poden posar al principi, comprovar si la selecció comença al principi del text
                     if (vTextBoxEnEdicio.SelectionStart > 0)
+                    {
+                        return false; // S'ignora el caràcter
+                    }
+                    // Si el text ja té algun caràcter, comprovar si el primer caràcter és un dels que només es poden posar al principi
+                    if (CaractersAcceptatsNomesAlInici.IndexOf(vTextBoxEnEdicio.Text[0]) != -1)
                     {
                         return false; // S'ignora el caràcter
                     }
@@ -227,16 +232,16 @@ namespace Controls
 
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)
         {
+            // Si vols controlar l'error i evitar que es propagui, pots fer-ho assignant la propietat Handled a true
+            e.ThrowException = false; // Opcional: indiques que ja has gestionat l'error
+            e.Cancel = true; // Opcional: indiques que cancel·les l'operació que va provocar l'error
+
             DataGridViewCell cella = this[e.ColumnIndex, e.RowIndex];
 
             if (e.Exception is FormatException && cella.OwningColumn is NumericTextBoxColumn2)
             {
                 // Aquí pots gestionar l'error de dades com vulguis
                 MessageBox.Show("Error de dades: " + e.Exception.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                // Si vols controlar l'error i evitar que es propagui, pots fer-ho assignant la propietat Handled a true
-                e.ThrowException = false; // Opcional: indiques que ja has gestionat l'error
-                e.Cancel = true; // Opcional: indiques que cancel·les l'operació que va provocar l'error
             }
             else
             {
