@@ -38,6 +38,8 @@ namespace Controls
             return clone;
         }
 
+        private DataGridView vGridAnterior = null;
+
         /// <summary>
         /// Aquest mètode s'executa automàticament quan la columna s'afegeix a un DataGridView
         /// </summary>Aquest mètode s'executa automàticament quan la columna s'afegeix a un DataGridView
@@ -45,15 +47,21 @@ namespace Controls
         {
             base.OnDataGridViewChanged();
 
+            // Desvincular sempre de l'antic si existia
+            if (vGridAnterior != null)
+            {
+                vGridAnterior.CellValidating -= DataGridView_CellValidating;
+            }
+
             if (this.DataGridView != null)
             {
-                // Ens desconnectem primer per evitar duplicitats si la columna es mou
-                this.DataGridView.CellValidating -= DataGridView_CellValidating;
                 // Ens connectem al veritable esdeveniment que bloqueja la sortida de la cel·la
                 this.DataGridView.CellValidating += DataGridView_CellValidating;
             }
-        }
 
+            // Actualitzar l'estat
+            vGridAnterior = this.DataGridView;
+        }
         private void DataGridView_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
             // 1. Ens assegurem que s'està validant AQUESTA columna en concret
